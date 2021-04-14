@@ -1,0 +1,1605 @@
+﻿WAVE 1
+
+
+W1_1. By beginning the survey you are indicating that you have read and understand the above information and you voluntarily agree to participate.
+* I am 18 years of age or older and consent to begin the study (1)
+* I do not consent, I do not wish to participate (2) [END OF SURVEY]
+
+
+W1_2 In order to make sure we have a representative sample of everyone across America, let’s start with a few basic demographic questions to ensure that this study is inclusive of all Americans. What racial/ethnic group best describes you?: 
+* White, non-Hispanic (1)
+* Hispanic or Latino (2)
+* Black or African American (3)
+* Asian or Asian American (4)
+* Middle Eastern or Arab (5)
+* American Indian or Native American (6)
+
+
+W1_3. Do you, or anyone in your family, trace your ancestry to one or more countries in Asia such as China, Taiwan, Korean, Japan, the Philippines, Vietnam, India, Pakistan, or another Asian country? [ONLY DISPLAY IF W1_2 DOES NOT EQUAL ASIAN/ASIAN AMERICAN]
+* Yes (1)
+* No (2) [END OF SURVEY]
+
+
+W1_NatOrigin Asian Americans come from many different backgrounds. What do you consider to be your ethnicity or national-origin? You may select more than one.
+* Chinese 
+* Taiwanese  
+* Indian  
+* Korean  
+* Filipino  
+* Vietnamese  
+* Japanese 
+* Pakistani  
+* Thai 
+* Iranian  
+* Bangladeshi 
+* Laotian  
+* Cambodian 
+* Hmong  
+* Native Hawaiian 
+* Samoan  
+* Bhutanese  
+* Burmese  
+* Fijian  
+* Indonesian  
+* Malay  
+* Mongolian 
+* Nepalese  
+* Singaporean  
+* Sri Lankan  
+Tongan  
+* Multiple Ethnicity
+
+W1_5. Of the identities you gave in the previous question, which do you identify the most? [DISPLAY IF RESPONDENT MARKED TWO OR MORE IDENTITIES IN W1_4]
+* Chinese  (1) 
+* Taiwanese  (2) 
+* Indian  (3) 
+* Korean  (4) 
+* Filipino  (5) 
+* Vietnamese  (6) 
+* Japanese  (7) 
+* Pakistani  (8) 
+* Thai  (9) 
+* Iranian  (10) 
+* Bangladeshi  (11) 
+* Laotian  (12) 
+* Cambodian  (13) 
+* Hmong  (14) 
+* Native Hawaiian  (15) 
+* Samoan  (16) 
+* Bhutanese  (17) 
+* Burmese  (18) 
+* Fijian  (19) 
+* Indonesian  (20) 
+* Malaysian  (21) 
+* Mongolian  (22) 
+* Nepalese  (23) 
+* Singaporean  (24) 
+* Sri Lankan  (25) 
+* Taiwanese  (26) 
+* Tongan  (27) 
+* Other Asian country (please indicate which)  (28)
+* Do Not Know  (29) [END OF SURVEY] 
+* No Asian background  (30) [END OF SURVEY]
+
+
+DEMOGRAPHICS BLOCK
+W1_6 Please indicate your gender
+* Male  (1) 
+* Female  (2) 
+* Other  (3) 
+
+
+W1_7 Please select your current state of residence 
+* Alabama <-> Wyoming
+
+
+W1_8 What year were you born? 
+* [TEXT ENTRY RESPONSE]
+
+
+W1_9 Do you own or rent the place you currently live?
+* Own (1)
+* Rent (2)
+
+
+W1_10 What is the highest level of education you have completed? 
+* Less than high school  (1) 
+* High school graduate  (2) 
+* Some college  (3) 
+* 2 year degree  (4) 
+* 4 year degree  (5) 
+* Professional/Masters Degree  (6) 
+* Doctorate  (7) 
+
+
+W1_11 Where did you complete your college education? [DISPLAY IF W1_10 = TWO YEAR DEGREE OR ABOVE]
+* In the United States  (1) 
+* In another country  (2) 
+
+
+W1_12 Are you currently married?
+* Yes  (1) 
+* No  (2) 
+
+
+W1_13 For statistical purposes, what is your total household income? 
+* Less than $10,000 (1)
+* $10K - $19,999 (2)
+* $20K - $29,999 (3)
+* $30K -$39,999 (4)
+* $40K - $49,999 (5)
+* $50K - $59,999 (6)
+* $60K - $69,999 (7)
+* $70K - $79,999 (8)
+* $80K - $89,999 (9)
+* $90K - $99,999 (10)
+* $100K - $149,999 (11)
+* $150k + (12)
+
+
+W1_14 Were you born in the United States or another country?
+* United States (1)
+* Another country (2)
+
+
+W1_15 How old were you when you arrived to the U.S.? [DISPLAY IF W1_14 = ANOTHER COUNTRY]
+* Answers range from 1-76. 1 is coded as 1, 2 as 2, and so on
+
+
+W1_16 Before you came to the United States, were you ever a member of any political party or political organization or a participant in any other type of political activities like voting, attending a protest, etc.? [DISPLAY IF W1_14= ANOTHER COUNTRY]
+* Yes  (1) 
+* No  (4) [please note that “no” is coded as a 4 for this question]
+
+
+W1_17 Where were your parents born? 
+* Both parents born in another country  (1) 
+* Both parents born in US  (2) 
+* One parent born in the US, one in another country  (3) 
+
+
+W1_18 Do you have U.S. citizenship?
+* Yes (1)
+* No (2)
+* In the process of naturalization (3)
+
+
+W1_19 Which country were you born in? [DISPLAY IF W1_14=ANOTHER COUNTRY]
+* [Text response]
+
+
+W1_20 Are you registered to vote at your current address?
+* Yes  (1) 
+* No  (2) 
+* Not eligible to vote  (3) 
+* Don't Know  (4) [END OF SURVEY]
+
+
+W1_21 Generally speaking, do you consider yourself to be an Independent, Democrat, Republican or other? 
+* Independent  (1) 
+* Democrat  (2) 
+* Republican  (3) 
+
+
+W1_22 Do you consider yourself to be a strong ${W1_21/ChoiceGroup/SelectedChoices} or a not very strong ${W1_21/ChoiceGroup/SelectedChoices}? [DISPLAY IF W1_21=DEMOCRAT OR W1_21=REPUBLICAN]
+* Strong (1)
+* Not very strong (2) 
+
+
+W1_23 Do you think of yourself as closer to the Republican Party or the Democratic Party? [DISPLAY IF W1_21=INDEPENDENT]
+* Closer to Democratic  (1) 
+* Neither  (2)
+* Closer to Republican  (3) 
+
+
+W1_24 We'd like to get your feelings towards American political parties. We'd like you to rate each party using something we call the feeling thermometer. Ratings between 50 degrees and 100 degrees mean that you feel favorable and warm toward the party. Ratings between 0 degrees and 50 degrees mean that you don't feel favorable toward the party and that you don't care too much for that party. You would rate the party at the 50-degree mark if you don't feel particularly warm or cold toward the party.
+* W1_24_1 🡨 feeling thermometer towards Democrats
+* W1_24_2 🡨 feeling thermometer towards Republicans
+
+
+W1_25 Did you vote in the 2016 U.S. election? 
+* Yes  (1) 
+* No  (2) 
+* Not eligible  (3) 
+* Don't recall  (4)
+
+
+W1_26 Who did you vote for in the 2016 U.S. election? [DISPLAY IF W1_25=YES]
+* Hillary Clinton  (1) 
+* Donald J. Trump  (2) 
+* Other  (5) 
+* Don't know  (6) [END OF SURVEY] 
+
+
+W1_27 Did you vote in the 2018 midterm election? 
+* Yes  (1) 
+* No  (2) 
+* Don't Know  (3) 
+
+
+END DEMOGRAPHICS BLOCK
+BEGIN LEUNG EXPERIMENT BLOCK
+
+
+W1_28 Next you will see a summary of a study on hiring preferences. Please take the time to read this brief summary carefully. You will be asked a series of W1_uestions about the content of the statement.  [DISPLAY ONLY ONE OF THREE CONDITIONS[
+
+
+W1_29 
+
+
+  
+
+
+
+W1_30
+  
+
+
+
+W1_31 
+  
+
+
+
+End Leung Experiment Block
+Begin Identity Attachment Block
+
+
+W1_32. Do you think what happens generally to Asian Americans in this country will have something to do with what happens in your life? 
+* No, not at all  (1) 
+* Yes, a little  (2)
+* Yes, a moderate amount  (3) 
+* Yes, a lot  (4) 
+
+
+W1_33 The fact that I am Asian American is an important part of my identity
+* Strongly disagree  (1) 
+* Disagree  (2) 
+* Somewhat disagree  (3) 
+* Somewhat agree  (5) 
+* Agree  (6) 
+* Strongly agree  (7)
+* W1_34 Being Asian American is not important to my sense of who I am. 
+* Strongly disagree  (1) 
+* Disagree  (2) 
+* Somewhat disagree  (3) 
+* Somewhat agree  (5) 
+* Agree  (6) 
+* Strongly agree  (7) 
+
+
+W1_35 I think that Asian Americans have a lot to be proud of.
+* Strongly disagree  (1) 
+* Disagree  (2) 
+* Somewhat disagree  (3)
+* Somewhat agree  (5) 
+* Agree  (6) 
+* Strongly agree  (7) 
+
+
+W1_36 Thinking about the article you read, would you describe the actions of the companies as discriminatory? 
+* Yes  (1) 
+* No  (2) 
+* Unsure  (3) 
+
+
+W1_37 To what extent do you favor or oppose affirmative action programs designed to help Blacks and other minorities get better access to higher education?
+* Strongly oppose  (1) 
+* Somewhat oppose  (2) 
+* Somewhat favor  (3) 
+* Strongly favor  (4) 
+
+
+W1_38 Do you agree or disagree with the following statement? Despite coming from different national-origins and cultures, Asians in America have similar political interests.  
+* Strongly agree  (6) 
+* Agree  (5) 
+* Somewhat agree  (4) 
+* Somewhat disagree  (3) 
+* Disagree  (2) 
+* Strongly disagree  (1) 
+
+
+W1_39 Is it important for Asian Americans to work together to improve the position of their racial group?  
+* Strongly agree  (6) 
+* Agree  (5) 
+* Somewhat agree  (4) 
+* Somewhat disagree  (3) 
+* Disagree  (2)
+* Strongly disagree  (1)
+
+
+W1_40_1 You will now be asked your opinions about some social groups you may or may not identify with. Using the response options provided, please indicate how you feel towards each group. How do you feel towards Black Americans? 
+* Very unfavorable (1)
+* Unfavorable (2)
+* Somewhat unfavorable (3)
+* Neither favorable nor unfavorable (4)
+* Somewhat favorable (5)
+* Favorable (6)
+* Very favorable (7)
+
+
+W1_40_2 You will now be asked your opinions about some social groups you may or may not identify with. Using the response options provided, please indicate how you feel towards each group. How do you feel towards Latino Americans? 
+* Very unfavorable (1)
+* Unfavorable (2)
+* Somewhat unfavorable (3)
+* Neither favorable nor unfavorable (4)
+* Somewhat favorable (5)
+* Favorable (6)
+* Very favorable (7)
+
+
+W1_40_3 You will now be asked your opinions about some social groups you may or may not identify with. Using the response options provided, please indicate how you feel towards each group. How do you feel towards White Americans? 
+* Very unfavorable (1)
+* Unfavorable (2)
+* Somewhat unfavorable (3)
+* Neither favorable nor unfavorable (4)
+* Somewhat favorable (5)
+* Favorable (6)
+* Very favorable (7)
+
+
+W1_40_4 You will now be asked your opinions about some social groups you may or may not identify with. Using the response options provided, please indicate how you feel towards each group. How do you feel towards Asian Americans? 
+* Very unfavorable (1)
+* Unfavorable (2)
+* Somewhat unfavorable (3)
+* Neither favorable nor unfavorable (4)
+* Somewhat favorable (5)
+* Favorable (6)
+* Very favorable (7)
+
+
+W1_41 What does "discrimination" mean to you? 
+* [TEXT RESPONSE]
+
+
+W1_42 How much discrimination do Asian Americans in the United States face?
+* A great deal  (5) 
+* A lot  (4) 
+* A moderate amount  (3) 
+* A little  (2) 
+* None at all  (1) 
+
+
+W1_43 Have you ever been treated unfairly or personally experienced discrimination because of your race, ethnicity, gender, sexuality, being an immigrant, religious heritage or having an accent?
+* Yes  (1) 
+* No  (2) 
+* Unsure  (3) 
+
+
+W1_44_1 Do you agree or disagree with the following statements? In comparison to other racial minorities such as African Americans, Latinos, and Native Americans...Asian Americans have a stronger work ethic.
+* Strongly agree (4)
+* Somewhat agree (3)
+* Somewhat disagree (2)
+* Strongly disagree (1)
+
+
+W1_44_2 Do you agree or disagree with the following statements? In comparison to other racial minorities such as African Americans, Latinos, and Native Americans...Asian Americans are more likely to achieve academic and economic success.
+* Strongly agree (4)
+* Somewhat agree (3)
+* Somewhat disagree (2)
+* Strongly disagree (1)
+
+
+W1_45 The fact that I am ${W1_4/ChoiceGroup/SelectedChoices} American is an important part of my identity. [DISPLAY NATIONAL-ORIGIN CHOICE FROM W1_4, PLEASE NOTE THE SCALE IN THIS ONE IS WEIRD]
+* Strongly disagree  (4) 
+* Disagree  (2) 
+* Somewhat disagree  (1) 
+* Somewhat agree  (5) 
+* Agree  (6) 
+* Strongly agree  (7) 
+
+
+W1_46 The fact that I am ${W1_5/ChoiceGroup/SelectedChoices} American is an important part of my identity. [DISPLAY IF RESPONDENT GAVE MORE THAN ONE NATIONAL-ORIGIN CHOICE, PLEASE NOTE THE SCALE IN THIS ONE IS WEIRD]
+* Strongly disagree  (4) 
+* Disagree  (2) 
+* Somewhat disagree  (1) 
+* Somewhat agree  (5) 
+* Agree  (6) 
+* Strongly agree  (7) 
+
+
+W1_47 Being ${W1_4/ChoiceGroup/SelectedChoices} American is not important to my sense of who I am. 
+* Strongly disagree  (1) 
+* Disagree  (2) 
+* Somewhat disagree  (3) 
+* Somewhat agree  (5) 
+* Agree  (6) 
+* Strongly agree  (7) 
+
+
+W1_48 Being ${W1_5/ChoiceGroup/SelectedChoices} American is not important to my sense of who I am. 
+* Strongly disagree  (1) 
+* Disagree  (2) 
+* Somewhat disagree  (3) 
+* Somewhat agree  (5) 
+* Agree  (6) 
+* Strongly agree  (7) 
+
+
+W1_49_1 Have you ever been personally told this statement by a non-Asian person?  You must be good at math/science.
+* Never (1)
+* Once or twice (2)
+* Sometimes (3)
+* Often (4)
+* Most of the time (5)
+
+
+W1_49_2 Have you ever been personally told this statement by a non-Asian person?  Where are you from? Where are you really from?
+* Never (1)
+* Once or twice (2)
+* Sometimes (3)
+* Often (4)
+* Most of the time (5)
+
+
+W1_49_3 Have you ever been personally told this statement by a non-Asian person? Do you speak English?
+* Never (1)
+* Once or twice (2)
+* Sometimes (3)
+* Often (4)
+* Most of the time (5)
+
+
+W1_49_4 Have you ever been personally told this statement by a non-Asian person?  Wow, your English is so good. 
+* Never (1)
+* Once or twice (2)
+* Sometimes (3)
+* Often (4)
+* Most of the time (5)
+
+
+W1_49_5 Have you ever been personally told this statement by a non-Asian person? Asian Americans are W1_uiet and keep to themselves. 
+* Never (1)
+* Once or twice (2)
+* Sometimes (3)
+* Often (4)
+* Most of the time (5)
+
+
+
+
+W1_53 When you were growing up, how frequently did you discuss American politics at home with your parents and other family members? 
+* Never  (1) 
+* Rarely  (2) 
+* Occasionally  (3) 
+* Frequently  (4) 
+* Very frequently  (5) 
+
+
+W1_54_1 In your daily life, how often did you discuss American politics with friends, colleagues, neighbors, or acquaintances from the following racial groups? Asian American
+* Never  (1) 
+* Rarely  (2) 
+* Occasionally  (3) 
+* Frequently  (4) 
+* Very frequently  (5) 
+
+
+W1_54_2 In your daily life, how often did you discuss American politics with friends, colleagues, neighbors, or acquaintances from the following racial groups? Black or African American
+* Never  (1) 
+* Rarely  (2) 
+* Occasionally  (3) 
+* Frequently  (4) 
+* Very frequently  (5) 
+
+
+W1_54_3 In your daily life, how often did you discuss American politics with friends, colleagues, neighbors, or acquaintances from the following racial groups? Hispanic or Latino
+* Never  (1) 
+* Rarely  (2) 
+* Occasionally  (3) 
+* Frequently  (4) 
+* Very frequently  (5) 
+
+
+W1_54_4 In your daily life, how often did you discuss American politics with friends, colleagues, neighbors, or acquaintances from the following racial groups? White 
+* Never  (1) 
+* Rarely  (2) 
+* Occasionally  (3) 
+* Frequently  (4) 
+* Very frequently  (5) 
+
+
+W1_55 In learning more about the political preferences of Asian Americans, some think that there should be greater efforts to distinguish Asian Americans by national-origin (for example, by Chinese, Japanese, Indian, Korean, Filipino, Hmong, Cambodian etc...), others do not. 
+Do you agree  or disagree that data should be disaggregated by ethnicity for Asian Americans?  [PLEASE NOTE THE SCALE IS FLIPPED HERE]  
+* Strongly Agree  (1) 
+* Agree  (2) 
+* Somewhat agree  (3) 
+* Somewhat disagree  (5) 
+* Disagree  (6) 
+* Strongly disagree  (7) 
+
+
+W1_80 
+Thank you for participating in this study. The goal of this study is to measure how stereotypes such as the model minority and forever foreigner affect Asian American’s views on their racial group. You may have read one of two articles that stated that companies prefer to hire Asian Americans because of their academic ability or you read an article that stated that companies did not prefer to hire Asian Americans due to beliefs about their English speaking ability. Both of these articles are false and made up for the purposes of this study. The deception is necessary because the articles are designed to mimic a ‘casual microaggression’ that Asian Americans may receive in day to day media. You’ll note that both of these articles do not explicitly seem ‘racial’ or ‘racist’ yet the underlying sentiment is couched in beliefs that Asian Americans are a ‘model minority’, well-educated, hardworking, and quiet. The other article is couched in the belief that Asian Americans are ‘forever foreigners’, unable or unwilling to assimilate into mainstream American society, hence the inability to speak English. Your time and participation in this study is extremely valuable, as Asian American political experiences are understudied. Thank you for taking the time to participate in this survey. 
+
+If you need to report any instances of sexual harassment  or misconduct, please visit this website for more information  (https://www.rainn.org/about-national-sexual-assault-telephone-hotline).
+
+Congratulations for completing the survey! As you exit the survey, you will be led to a link to collect your reward points for successfully completing the survey. In addition, please use the space below to provide any comments or feedback for how the survey might be improved. Please share any thoughts or concerns you have about this survey. 
+
+Thank you.
+
+
+END OF SURVEY
+
+
+* Chinbo Experiment Assignment: CC_Condition
+* Vivien Experiment Assignment: VL_condition
+* Maneesh Experiment Assignment: MAEXPERIMENT_DO
+
+
+SUMMARY STATS
+* Total Asian N = 1558
+* 45.6% Foreign Born, 54.4% US Born
+*  57.1% Female, 42.9% Male
+* 31.3% Chinese, 17.5% South Asian, 14.1% Japanese, 12.8% Filipino, 7.1% Korean, and 6% Vietnamese. 
+
+
+
+
+WAVE 2
+Wave 2 May 2020 Codebook
+W2_1 Consent Form. 
+* I am 18 years of age or older and consent to begin the study  (1) 
+* I do not consent, I do not wish to participate  (2) [TERMINATE] 
+
+
+W2_2 In order to make sure we have a representative sample of everyone across America, let’s start with a few basic demographic questions to ensure that this study is inclusive of all Americans. What racial/ethnic group best describes you?
+* White, non-Hispanic  (1) [TERMINATE]
+* Hispanic or Latino  (2) [TERMINATE]
+* Black or African American  (3) [TERMINATE]
+* Asian or Asian American  (4) 
+* Middle Eastern or Arab  (5) [TERMINATE]
+* American Indian or Native American  (6) [TERMINATE]
+
+
+W2_NatOrigin Asian Americans come from many different backgrounds. What do you consider to be your ethnicity or national-origin? You may select more than one.  
+* Chinese  
+* Taiwanese  
+* Indian  
+* Korean  
+* Filipino  
+* Vietnamese  
+* Japanese  
+* Pakistani  
+* Thai  
+* Iranian  
+* Bangladeshi 
+* Laotian
+* Cambodian 
+* Hmong 
+* Hong Kong
+* Native Hawaiian
+* Samoan 
+* Bhutanese
+* Burmese 
+* Fijian   
+* Indonesian 
+* Malay 
+* Mongolian 
+* Nepalese 
+* Singaporean 
+* Sri Lankan
+* Tongan
+* Multiple Ethnicity
+*     Other Asian country (please indicate which)  (28) ________________________________________________
+* Do Not Know  (29) [TERMINATE] 
+* No Asian Background  (30) [TERMINATE]
+
+
+
+
+W2_4 Were you born in the United States or another country?
+* United States  (1) 
+* Another county  (2) 
+
+
+W2_5 Do you have any children under 18 years old?
+* Yes  (1) 
+* No  (2) 
+
+
+W2_6 Including yourself, how many people live in your household?
+* Enter number:  (1) ________________________________________________
+
+
+
+
+W2_7 Generally speaking, do you usually think of yourself as a Democrat, Republican, Independent, or something else?
+* Republican  (1) 
+* Independent  (2) 
+* Democrat  (3) 
+* Some other party  (4) 
+* I don't think of myself in these terms  (5) 
+
+
+W2_8 Did you vote in the Democratic 2020 primary election?
+* Yes  (1) 
+* No  (2) 
+* Not eligible to vote  (3) 
+
+
+W2_9 Where do you mostly go to learn about the news or other current events?
+* Major television or cable networks (such as NBC, CNN, Fox)  (1) 
+* Major newspaper sources (such as Washington Post, New York Times, Wall Street Journal)  (2) 
+* Social media (such as Facebook, Twitter, WeChat)  (3) 
+* Ethnic-specific media sources (such as AsAm News, Singtao News, Rafu Shimpo)  (4)
+* Other [fill in the blank]:  (5) ________________________________________________
+
+
+W2_10 How interested are you in politics?
+* Very interested  (1) 
+* Somewhat interested  (2) 
+* Somewhat disinterested  (3) 
+* Very disinterested  (4) 
+
+
+W2_11 Have you ever had or thought you might have had Coronavirus or COVID-19?
+* Yes  (1) 
+* No  (2) 
+ 
+W2_12 Do you know someone close to you--such as a family member or friend--who has been diagnosed with Coronavirus or COVID-19?
+* Yes  (1) 
+* No  (2) 
+
+
+W2_13 How has your employment situation changed as a result of the Coronavirus or COVID-19 outbreak? Select all that apply.
+* Lost my regular job  (1) 
+* Had a reduction of income  (2)
+* Switched to working at home  (3) 
+* Continued to report to work because I am an essential worker  (4) 
+* Other [fill in the blank]  (5) ________________________________________________
+* Retired (6)
+* Unemployed (7)
+* Homemaker (8)
+* N/A (9)
+* Nothing changed (10)
+* Student (11)
+
+
+
+
+W2_14 Have you experienced any of the following challenges as a result of the Coronavirus or COVID-19 outbreak.  Select all that apply
+* Difficulty obtaining childcare  (1) 
+* Have had financial difficulties such as paying bills or rent  (2) 
+* Have experienced hunger due to lack of food or ability to obtain food  (3) 
+* Moved to live in a different location  (4) 
+* Continue to pay for services for activities that you cannot do because of the stay at home orders (such as tuition or membership fees)  (5) 
+* Increased fighting or conflict with others in my household  (6) 
+* Other challenge [fill in the blank]  (7) ________________________________________________
+* No change (8)
+* Mental health challenge (9)
+* Difficulty accessing healthcare (10)
+* Difficulty accessing food (11)
+
+
+W2_15 In the past few months, have you been treated unfairly or poorly by others because of the Coronavirus or COVID-19 outbreak?
+* Yes  (1) 
+* No  (2) 
+
+
+[IF W2_15 = 1] W2_16 Please describe how you were treated unfairly or poorly.
+
+
+________________________________________________________________
+
+
+[IF W2_15=1] W2_17 How likely do you think you were treated this way because you are Asian?
+* Very likely  (1) 
+* Somewhat likely  (2) 
+* Not very likely  (3) 
+* I'm not sure  (4) 
+
+
+W2_18 Do you personally know someone else that is Asian American who has been treated unfairly or poorly because of the Coronavirus or COVID-19 outbreak?
+* Yes  (1) 
+* No  (2) 
+
+
+
+
+W2_19 There was a lot of changing information about Coronavirus or COVID-19, how informed did you feel about what was happening?
+* Very well informed  (1) 
+* Somewhat well informed  (2) 
+* Not informed at all  (3) 
+
+
+
+
+W2_20 Do you approve or disapprove of how President Trump has handled the response to the Coronavirus or COVID-19 outbreak?
+* Strongly approve  (1) 
+* Somewhat approve  (2) 
+* Neither approve or disapprove  (3) 
+* Somewhat disapprove  (4) 
+* Strongly disapprove  (5) 
+
+
+
+
+W2_21  Do you approve or disapprove of how your state governor has handled the response to the Coronavirus or COVID-19 outbreak?
+* Strongly approve  (1) 
+* Somewhat approve  (2) 
+* Neither approve or disapprove  (3) 
+* Somewhat disapprove  (4)
+* Strongly disapprove  (5) 
+
+
+
+
+W2_22 Do you approve or disapprove of how your city or local officials have handled the response to the Coronavirus or COVID-19 outbreak? 
+* Strongly approve  (1) 
+* Somewhat approve  (2) 
+* Neither approve or disapprove  (3) 
+* Somewhat disapprove  (4) 
+* Strongly disapprove  (5) 
+
+
+
+
+W2_23 Consider the following:    After the Coronavirus or COVID-19 outbreak is over and Americans are allowed to leave their homes, what do you think will be the biggest challenge you will face:
+* Finding a new job  (1) 
+* Reduced income  (2) 
+* Paying for bills  (3) 
+* Keeping my home or trying not to be evicted  (4) 
+* Educating my children  (5) 
+* Restarting my business  (6) 
+* Caring for the elders or seniors in my family  (7) 
+* Other challenge [please describe]:  (8) ________________________________________________
+* Things will go back to the way they were before the COVID-19 outbreak  (9) 
+
+
+W2_24 Do you think that discrimination against Asians and Asian Americans has increased or decreased due to the Coronavirus or COVID-19 outbreak?
+* Increased a lot  (1) 
+* Increased some  (2) 
+* Neither increased or decreased  (3) 
+* Decreased some  (4) 
+* Decreased a lot  (5) 
+
+
+ [IF W2_24= 1,2,3] W2_25 Do you think that COVID-19 related discrimination affects only Chinese Americans or all Asian Americans?
+* Affects only Chinese-Americans  (1) 
+* Affects all Asian Americans  (2) 
+
+
+W2_26_1 How strongly do you agree or disagree with the following: Many people believe that Asian Americans are responsible for the COVID-19 outbreak.
+* Strongly agree (1)
+* Somewhat agree (2)
+* Neither agree nor disagree (3)
+* Somewhat disagree (4)
+* Strongly disagree (5)
+
+
+W2_26_2 Many people think I have COVID because I am Asian American
+* Strongly agree (1)
+* Somewhat agree (2)
+* Neither agree nor disagree (3)
+* Somewhat disagree (4)
+* Strongly disagree (5)
+
+
+W2_26_3 Asian Americans are scared or fearful to go out in public because they feel they might be attacked or harassed
+* Strongly agree (1)
+* Somewhat agree (2)
+* Neither agree nor disagree (3)
+* Somewhat disagree (4)
+* Strongly disagree (5)
+
+
+
+
+W2_27 Due to the COVID-19 outbreak, do you feel like you have to modify your behavior in public around non-Asians such as: Select all that apply
+* Being afraid to cough or sneeze in public  (1) 
+* Being afraid to walk in your neighborhood  (2) 
+* Being afraid of using public transportation services such as the bus or subway  (3) 
+* Feeling that you cannot speak openly using an Asian language  (4) 
+* Other [please elaborate in the text box]  (5) ________________________________________________
+* I do not feel that I have to modify my behavior  (6) 
+  
+
+	W2_28_1 In your opinion, how likely would a member of the following racial groups receive COVID-19 related harassment? White Americans
+* Extremely likely (1)
+* Somewhat likely (2)
+* Neither likely nor unlikely (3)
+* Somewhat unlikely (4)
+* Extremely unlikely (5)
+
+
+W2_28_2 In your opinion, how likely would a member of the following racial groups receive COVID-19 related harassment? Black Americans
+* Extremely likely (1)
+* Somewhat likely (2)
+* Neither likely nor unlikely (3)
+* Somewhat unlikely (4)
+* Extremely unlikely (5)
+
+
+W2_28_3 In your opinion, how likely would a member of the following racial groups receive COVID-19 related harassment? Latino Americans
+* Extremely likely (1)
+* Somewhat likely (2)
+* Neither likely nor unlikely (3)
+* Somewhat unlikely (4)
+* Extremely unlikely (5)
+
+
+W2_28_4 In your opinion, how likely would a member of the following racial groups receive COVID-19 related harassment? Asian Americans
+* Extremely likely (1)
+* Somewhat likely (2)
+* Neither likely nor unlikely (3)
+* Somewhat unlikely (4)
+* Extremely unlikely (5)
+
+
+W2_29 Next, we would like to ask you about your views on Asian Americans as a whole in the United States
+
+
+W2_30 In general, how much discrimination do Asian Americans in the United States face?
+* A great deal  (1) 
+* A lot  (2) 
+* A moderate amount  (3) 
+* A little  (4) 
+* None at all  (5) 
+
+
+
+
+W2_31 Do you agree or disagree with the following statement? 
+Despite coming from different national-origins and cultures, Asians in America have similar political interests.  
+* Strongly agree  (1) 
+* Agree  (2) 
+* Somewhat agree  (3) 
+* Somewhat disagree  (4) 
+* Disagree  (5) 
+* Strongly disagree  (6) 
+
+
+
+
+W2_32 Do you agree or disagree with the following statement? Is it important for Asian Americans to work together to improve the position of their racial group? 
+* Strongly agree  (1) 
+* Agree  (2) 
+* Somewhat agree  (3) 
+* Neither agree nor disagree  (4) 
+* Somewhat disagree  (5) 
+* Disagree  (6) 
+* Strongly disagree  (7) 
+
+
+	
+
+W2_33_1 You will now be asked your opinions about some social groups you may or may not identify with. Using the response options provided, please indicate how you feel towards each group. Black Americans. 
+* Very unfavorable (1)
+* Unfavorable (2)
+* Somewhat unfavorable (3)
+* Neither favorable nor unfavorable (4)
+* Favorable (5)
+* Very favorable (6)
+
+
+W2_33_2 You will now be asked your opinions about some social groups you may or may not identify with. Using the response options provided, please indicate how you feel towards each group. Latino Americans. 
+* Very unfavorable (1)
+* Unfavorable (2)
+* Somewhat unfavorable (3)
+* Neither favorable nor unfavorable (4)
+* Favorable (5)
+* Very favorable (6)
+
+
+W2_33_3 You will now be asked your opinions about some social groups you may or may not identify with. Using the response options provided, please indicate how you feel towards each group. White Americans. 
+* Very unfavorable (1)
+* Unfavorable (2)
+* Somewhat unfavorable (3)
+* Neither favorable nor unfavorable (4)
+* Favorable (5)
+* Very favorable (6)
+
+
+W2_33_4 You will now be asked your opinions about some social groups you may or may not identify with. Using the response options provided, please indicate how you feel towards each group. Asian Americans. 
+* Very unfavorable (1)
+* Unfavorable (2)
+* Somewhat unfavorable (3)
+* Neither favorable nor unfavorable (4)
+* Favorable (5)
+* Very favorable (6)
+
+
+
+
+
+
+W2_34 Do you think what happens generally to Asian Americans in this country will have something to do with what happens in your life?
+* No, not at all  (1) 
+* Yes, a little  (2) 
+* Yes, a moderate amount  (3) 
+* Yes, a lot  (4) 
+
+
+W2_35 Do you agree or disagree with the following statement? 
+The fact that I am Asian American is an important part of my identity
+* Strongly disagree  (1) 
+* Disagree  (2) 
+* Somewhat disagree  (3) 
+* Somewhat agree  (4) 
+* Agree  (5) 
+* Strongly agree  (6) 
+
+
+W2_36 Do you agree or disagree with the following statement? 
+I think that Asian Americans have a lot to be proud of.
+* Strongly disagree  (1) 
+* Disagree  (2) 
+* Somewhat disagree  (3)
+* Somewhat agree  (4) 
+* Agree  (5) 
+* Strongly agree  (6) 
+
+
+W2_37 Next, we would like to ask you some questions about politics and government.
+
+
+W2_38 How likely are you to vote in the 2020 presidential election in November?
+* Very likely  (1) 
+* Somewhat likely  (2) 
+* Unlikely  (3) 
+* Not at all  (4) 
+* Not eligible to vote  (5) 
+
+
+Display This Question:
+If W2_38 = Very likely
+Or W2_38 = Somewhat likely
+W2_39 Which candidate do you think you will be voting for?
+* Joseph Biden  (1) 
+* Donald Trump  (2) 
+* A different candidate (please indicate who)  (3) ________________________________________________
+
+
+________________
+
+
+
+
+W2_40 Next, we would like to ask you about your thoughts on former presidential candidate Andrew Yang and his policy positions.  
+
+
+
+W2_41 
+Next, we would like to ask you about your thoughts on former presidential candidate Andrew Yang and his policy positions.
+
+
+Please read the following excerpt carefully as you will be asked a series of questions regarding the content of the statement.
+
+
+
+
+W2_42 
+We would like to get your feelings towards Andrew Yang. We would like you to rate him using something we call the feeling thermometer. Ratings between 50 degrees and 100 degrees mean that you feel favorable and warm towards Yang. Ratings between 0 degrees and 50 degrees mean that you don't feel favorable towards Yang and that you don't care too much for him. You would rate the Yang at the 50-degree mark if you don't feel particularly warm or cold towards him.
+
+
+
+	0
+	10
+	20
+	30
+	40
+	50
+	60
+	70
+	80
+	90
+	100
+	
+
+Feeling towards Andrew Yang ()
+	  
+
+	
+
+
+
+W2_43 To what extent do you favor or oppose affirmative action programs designed to help racial and ethnic minorities get better access to higher education?
+* Strongly oppose  (1) 
+* Somewhat oppose  (2) 
+* Somewhat favor  (3) 
+* Strongly favor  (4) 
+
+
+  
+
+	W2_44_1 How strongly do you agree or disagree with the following statements? Andrew Yang is representative of Asian Americans.
+* Strongly agree (1)
+* Agree (2)
+* Somewhat agree (3)
+* Neither agree nor disagree (4)
+* Somewhat disagree (5)
+* Disagree (6)
+
+
+W2_44_2 How strongly do you agree or disagree with the following statements? I am proud of Andrew Yang
+* Strongly agree (1)
+* Agree (2)
+* Somewhat agree (3)
+* Neither agree nor disagree (4)
+* Somewhat disagree (5)
+* Disagree (6)
+
+
+W2_44_3 How strongly do you agree or disagree with the following statements? I would vote for Andrew Yang if he were on the ballot again
+* Strongly agree (1)
+* Agree (2)
+* Somewhat agree (3)
+* Neither agree nor disagree (4)
+* Somewhat disagree (5)
+* Disagree (6)
+
+
+W2_45 Do you agree or disagree with Andrew Yang's "Freedom Dividend"? The Freedom Dividend is a form of universal basic income (UBI), a type of social security that guarantees a certain amount of money to every citizen without having to pass a test or fulfill a work requirement. Yang proposes a set of guaranteed payments of $1,000 per month, or $12,000 per year, to all U.S. citizens over the age of 18.
+* Strongly agree  (1) 
+* Agree  (2) 
+* Somewhat agree  (3) 
+* Neither agree nor disagree  (4) 
+* Somewhat disagree  (5) 
+* Disagree  (6) 
+* Strongly disagree  (7) 
+________________
+
+
+
+
+W2_46 We would like hear your thoughts on Andrew Yang's presidential campaign. Please use the text box below to let us know what your thoughts are on his campaign. 
+________________________________________________________________
+
+
+
+
+W2_47 Thank you for participating in this study. The goal of this study is to get a sense for how Asian Americans are doing as a result of the COVID-19/Coronavirus pandemic. We are also interested in how Asian Americans viewed Andrew Yang's campaign and policy positions. You may have read a tweet about how Andrew Yang supports affirmative action or just an image of Andrew Yang. The tweet was taken from Andrew Yang's statement from an Asian American presidential forum. Your time and participation in this study is extremely valuable, as Asian American political experiences are understudied. Thank you for taking the time to participate in this survey. 
+ 
+
+
+Congratulations for completing the survey! As you exit the survey, you will be led to a link to collect your reward points for successfully completing the survey. In addition, please use the space below to provide any comments or feedback for how the survey might be improved. Please share any thoughts or concerns you have about this survey. We hope that you and your families stay safe and healthy.     Thank you.
+________________________________________________________________
+
+
+
+
+
+
+WAVE 3
+
+
+
+
+W3_1 University of California Los AngelesStudy Information Sheet - Survey on Political Attitudes
+
+I am 18 years of age or older and consent to begin the study  (1) 
+* I do not consent, I do not wish to participate  (2) 
+
+
+Skip To: End of Survey If University of California Los Angeles Study Information Sheet - Survey on Political Attitudes Welc... = I do not consent, I do not wish to participate
+
+
+Page Break
+	
+
+	________________
+
+
+End of Block: Consent Form
+
+
+Start of Block: Demographics
+
+
+W3_2 What is your racial or ethnic background?
+* White, non-Hispanic  (1) 
+* Hispanic or Latino  (2) 
+* Black or African American  (3) 
+* Asian or Asian American  (4) 
+* Some other race  (7) 
+
+
+Skip To: End of Survey If What is your racial or ethnic background? = White, non-Hispanic
+Skip To: End of Survey If What is your racial or ethnic background? = Hispanic or Latino
+Skip To: End of Survey If What is your racial or ethnic background? = Black or African American
+Skip To: End of Survey If What is your racial or ethnic background? = Some other race
+
+
+Page Break
+	
+
+	________________
+
+
+  
+
+	
+
+W3_3 Asian Americans come from many different backgrounds. What do you consider to be your ethnicity or national-origin? You may select more than one.  National-origins are displayed in alphabetical order.
+* Chinese 
+* Indian 
+* Korean
+* Filipino  
+* Vietnamese 
+* Japanese 
+* Pakistani 
+* Thai  
+* Iranian  
+* Bangladeshi  
+* Laotian  
+* Cambodian 
+* Hmong  
+* Hong Kong
+* Samoan  
+* Bhutanese 
+* Burmese 
+* Fijian  
+* Indonesian  
+* Malaysian  
+* Mongolian  
+* Nepalese  
+* Singaporean  
+* Sri Lankan  
+* Tongan 
+* [No one selected multiple national origins in w3] 
+* Do Not Know  (29) 
+* No Asian Background  (30) 
+* Hawaiian   
+
+
+Skip To: End of Survey If Asian Americans come from many different backgrounds. What do you consider to be your ethnicity o... = No Asian Background
+Skip To: End of Survey If Asian Americans come from many different backgrounds. What do you consider to be your ethnicity o... = Do Not Know
+
+
+Page Break
+	
+
+	________________
+
+
+
+
+W3_4 Were you born in the United States or another country?
+* United States  (1) 
+* Another county  (2) 
+
+
+W3_5 What is your gender?
+* Male  (1) 
+* Female  (2) 
+* Other  (3) 
+
+
+W3_6 What is your age range?
+* 18-20  (1) 
+* 21-25  (5) 
+* 26-30  (6) 
+* 31-35  (7) 
+* 36-40  (8)
+* 41-45  (9) 
+* 46-50  (10) 
+* 51-55  (11) 
+* 56-60  (12) 
+* 61-65  (13) 
+* 66-70  (14) 
+* 71-75  (15) 
+* 76+  (16) 
+
+
+W3_7 What is your martial status?
+* Married  (1) 
+* Single  (2) 
+* Divorced  (3) 
+* Long-term Partnership But Not Married  (4) 
+* Other  (5) ________________________________________________
+
+
+
+
+W3_8 Do you have any children under 18 years of age?
+* Yes  (1) 
+* No  (2) 
+
+
+W3_9 For statistical purposes, what is your total annual household income?
+* Below $10,000  (1) 
+* $10,000 to $29,999  (2) 
+* $30,000 to $49,999  (3) 
+* $50,000 to $69,000  (4) 
+* $70,000 to $89,999  (5) 
+* $90,000 to $109,999  (6) 
+* $110,000 to $149,999  (7) 
+* $150,000-$199,999  (8) 
+* $200,000 or more  (9) 
+
+
+W3_10 What is your employment status?
+* Work full-time  (1) 
+* Work part-time  (2) 
+* Student  (3) 
+* Retired  (4) 
+* Homemaker  (5) 
+* Unemployed / Not working  (6) 
+
+
+W3_11 What is the highest level of education you have received?
+* Some High School  (1) 
+* High School Degree/GED  (2) 
+* Some College  (3) 
+* Associates Degree  (4) 
+* Bachelors Degree  (5) 
+* Masters/Professional Degree/Doctorate  (6) 
+
+
+W3_12 Generally speaking, do you usually think of yourself as a Democrat, Republican, Independent, or something else?
+* Republican  (1) 
+* Independent  (2) 
+* Democrat  (3) 
+* Some other party  (4) 
+* I don't think of myself in these terms  (5) 
+
+
+Display This Question:
+If Generally speaking, do you usually think of yourself as a Democrat, Republican, Independent, or s... = Republican
+Or Generally speaking, do you usually think of yourself as a Democrat, Republican, Independent, or s... = Democrat
+
+
+W3_13 How strongly do you think of yourself as ${W3_12/ChoiceGroup/SelectedChoices}?
+* Very strongly  (1) 
+* Somewhat strongly  (2) 
+* Not strong  (3) 
+
+
+Display This Question:
+If Generally speaking, do you usually think of yourself as a Democrat, Republican, Independent, or s... = Independent
+Or Generally speaking, do you usually think of yourself as a Democrat, Republican, Independent, or s... = Some other party
+Or Generally speaking, do you usually think of yourself as a Democrat, Republican, Independent, or s... = I don't think of myself in these terms
+  
+
+	
+
+W3_14 If you had to choose, do you consider yourself closer to the Republican party or the Democratic party?
+* Democrat  (1) 
+* Republican  (2) 
+
+
+W3_15 Have you ever had or thought you might have had Coronavirus or COVID-19?
+* Yes  (1)
+* No  (2) 
+
+
+
+
+Display This Question:
+If Have you ever had or thought you might have had Coronavirus or COVID-19? = Yes
+
+
+W3_16 Did you ever test positive for the Coronavirus or COVID-19?
+* Yes  (1) 
+* No  (2) 
+* Was unable to get tested  (3) 
+
+
+W3_17 Do you know someone close to you--such as a family member or friend--who has tested positive with Coronavirus or COVID-19?
+* Yes  (1) 
+* No  (2) 
+
+
+W3_18 We have now been facing COVID-19 for over eight months. How would you evaluate your life now compared to the start of the Coronavirus or COVID-19? Chose the statement that you most agree with
+* My life did not change much due to COVID-19  (1) 
+* I experienced changes due to COVID-19 but now my life has generally returned back to normal  (2) 
+* Things in my life have continued to get worse since COVID-19 started  (3) 
+* Things in my life have continued to get better since COVID-19 started  (4) 
+Display This Question:
+If We have now been facing COVID-19 for over eight months. How would you evaluate your life now comp... = Things in my life have continued to get worse since COVID-19 started
+
+
+W3_19 What challenges have you continued to face since COVID-19 started? Check all that apply. 
+* Job loss  (1) 
+* Have had financial difficulties such as paying bills or rent  (2) 
+* Have experienced hunger due to lack of food or ability to obtain food  (3) 
+* Difficulties in obtaining childcare and/or schooling for children  (4) 
+* Problems related to physical health  (5) 
+* Problems related to mental health  (6) 
+* Other (fill in the blank)  (7) ________________________________________________
+
+
+
+
+W3_20 In the past few months, have you been treated unfairly or poorly by others because of the Coronavirus or COVID-19 outbreak?
+* Yes  (1) 
+* No  (2) 
+
+
+Display This Question:
+If In the past few months, have you been treated unfairly or poorly by others because of the Coronav... = Yes
+
+
+W3_21 Please describe how you were treated unfairly or poorly.
+
+
+________________________________________________________________
+Display This Question:
+If In the past few months, have you been treated unfairly or poorly by others because of the Coronav... = Yes
+
+
+W3_22 How likely do you think you were treated this way because you are Asian?
+* Very likely  (1) 
+* Somewhat likely  (2) 
+* Not very likely  (3) 
+* I'm not sure  (4) 
+
+
+
+
+W3_23 Do you think that discrimination against Asians and Asian Americans has increased or decreased due to the COVID-19 outbreak?
+* Increased a lot  (1) 
+* Increased some  (2) 
+* Neither increased or decreased  (3) 
+* Decreased some  (4) 
+* Decreased a lot  (5) 
+
+
+W3_24 Overall, do you think the Coronavirus/COVID-19 outbreak has been:
+* Made a BIGGER deal than it really is  (1) 
+* Made a SMALLER deal than it really is  (2) 
+* Approached just about right  (3) 
+
+
+
+
+W3_25 These days, people are so busy they cannot find time to register to vote or they have moved and their voter registration has lapsed.  Are you registered to vote at your current address?
+* Yes  (1) 
+* No  (2) 
+* Not eligible  (3) 
+Display This Question:
+If These days, people are so busy they cannot find time to register to vote or they have moved and t... = Yes
+
+
+W3_26 Did you vote in the 2020 November election?
+* Yes  (1) 
+* No  (2) 
+Display This Question:
+If Did you vote in the 2020 November election? = Yes
+  
+
+	
+
+W3_27 Which candidate did you vote for President?
+* Joseph Biden  (1) 
+* Donald Trump  (2) 
+* Other candidate  (3) 
+
+
+Display This Question:
+If Did you vote in the 2020 November election? = Yes
+
+
+W3_28 Did you experience any of the following problems when trying to vote? Select all that apply.
+* Problems trying to register to vote  (1) 
+* Waited long lines at the polling station  (2) 
+* Problems with your ballot (i.e. ballot lost in the mail, ballot not accepted, etc)  (3) 
+* Was denied ability to vote at the polling station  (4) 
+* Other (please fill in)  (5) ________________________________________________
+* I did not experience problems when voting  (6) 
+
+
+
+
+W3_29 People take part in many types of civic and political activities. In the last 12 months, have you: (check all that apply)
+* Discussed politics with friends and family  (1) 
+* Volunteered for a candidate, political party, or some other political campaign  (2) 
+* Contributed money to a candidate, political party, or some other political campaign  (3)
+* Contacted your representative or government official about a problem  (4) 
+* Worked with others in your community to solve a problem  (5) 
+* Visited an internet site or online community to discuss a candidate or issue  (6)
+* Attended a protest, march, demonstration, or rally  (7) 
+
+
+W3_30 Here is a list of policy statements. For each statement, please share if you agree or disagree.
+
+
+	Strongly agree (1)
+	Somewhat agree (3)
+	Neither agree nor disagree (4)
+	Somewhat disagree (5)
+	Strongly disagree (7)
+	The federal government should guarantee healthcare for everyone (W3_30_1) 
+	* 	* 	* 	* 	* 	Abortion should be legal in all cases (W3_30_2) 
+	* 	* 	* 	* 	* 	Colleges and universities should be allowed to consider race as a factor for admissions decisions (W3_30_3) 
+	* 	* 	* 	* 	* 	There should be a pathway to citizenship for people who are in this country illegally (W3_30_4) 
+	* 	* 	* 	* 	* 	Laws should not make it harder for individuals to buy a gun (W3_30_5) 
+	* 	* 	* 	* 	* 	
+
+
+
+
+
+W3_31 How do you feel about the Black Lives Matter movement? [Please be aware that the response numbers are differently scored on this question]
+* Strongly support  (1) 
+* Somewhat support  (2) 
+* Neither support nor oppose  (5) 
+* Somewhat oppose  (3) 
+* Strongly oppose  (4) 
+* Don't know enough to say  (7) 
+
+
+W3_32 How much government regulation of business is good for society?
+* A great deal  (1) 
+* A lot  (2) 
+* A moderate amount  (3) 
+* A little  (4) 
+* None at all  (5) 
+
+
+W3_33 In general, how much discrimination do Asian Americans in the United States face?
+* A great deal  (1) 
+* A lot  (2) 
+* A moderate amount  (3) 
+* A little  (4) 
+* None at all  (5) 
+* W3_34 Do you agree or disagree with the following statement? 
+Despite coming from different national-origins and cultures, Asians in America have similar political interests.  
+* Strongly agree  (1) 
+* Agree  (2) 
+* Somewhat agree  (3) 
+* Somewhat disagree  (4) 
+* Disagree  (5) 
+* Strongly disagree  (6) 
+* W3_35 Do you think what happens generally to Asian Americans in this country will have something to do with what happens in your life?
+* No, not at all  (1) 
+* Yes, a little  (2) 
+* Yes, a moderate amount  (3) 
+* Yes, a lot  (4) 
+
+
+W3_36 Do you agree or disagree with the following statement?      The fact that I am Asian American is an important part of my identity   
+* Strongly disagree  (1) 
+* Disagree  (2) 
+* Somewhat disagree  (3) 
+* Somewhat agree  (4) 
+* Agree  (5) 
+* Strongly agree  (6) 
+
+
+W3_37 We are interested in the way you have been treated in the United States, and whether you have ever been treated unfairly because of your race or ancestry.  Has any of the following happened to you?
+
+
+	Yes (1)
+	No (2)
+	Unfairly denied a job or fired (W3_37_1) 
+	* 	* 	Unfairly denied a promotion at work (W3_37_2) 
+	* 	* 	Unfair treatment by the police (W3_37_3) 
+	* 	* 	Unfairly prevented from renting or buying a house or apartment (W3_37_4) 
+	* 	* 	Unfair treatment at restaurants or stores (W3_37_5) 
+	* 	* 	
+
+
+
+W3_38 Here is a list of statements. For each statement, please share if you agree or disagree with the statement.
+
+
+	Strongly Agree (1)
+	Somewhat agree (3)
+	Neither agree nor disagree (4)
+	Somewhat disagree (5)
+	Strongly disagree (7)
+	Many women interpret innocent remarks or acts as being sexist. (W3_38_1) 
+	* 	* 	* 	* 	* 	 Women should be cherished and protected by men (W3_38_2) 
+	* 	* 	* 	* 	* 	Most women fail to appreciate fully all that men do for them. (W3_38_3) 
+	* 	* 	* 	* 	* 	  Men are incomplete without women (W3_38_4) 
+	* 	* 	* 	* 	* 	  Women, compared to men, tend to have a superior moral sensibility (W3_38_5) 
+	* 	* 	* 	* 	* 	Women seek to gain power by getting control over men (W3_38_6) 
+	* 	* 	* 	* 	* 	Once a woman gets a man to commit to her, she tries to put him on a tight leash. (W3_38_7) 
+	* 	* 	* 	* 	* 	 Men should be willing to sacrifice their own well being in order to provide financially for the women in their lives (W3_38_8) 
+	* 	* 	* 	* 	* 	
+
+
+
+W3_39 We would like you to rate the following individuals using something we call the feeling thermometer. Ratings between 50 degrees and 100 degrees mean that you feel favorable and warm toward the group. Ratings between 0 degrees and 50 degrees mean that you don't feel favorable toward the group and that you don't care too much for the group. You would rate at the 50 degree mark if you don't feel particularly warm or cold toward the group.
+
+
+	0
+	10
+	20
+	30
+	40
+	50
+	60
+	70
+	80
+	90
+	100
+	
+
+Donald Trump (W3_39_1)
+	  
+
+	Joseph Biden (W3_39_2)
+	  
+
+	Mike Pence (W3_39_3)
+	  
+
+	Kamala Harris (W3_39_4)
+	  
+
+	
+
+
+
+
+
+Page Break
+	
+
+	________________
+
+
+  
+
+	
+
+W3_40 Use a feeling thermometer to rate the following groups.  Ratings between 50 degrees and 100 degrees mean that you feel favorable and warm toward the group. Ratings between 0 degrees and 50 degrees mean that you don't feel favorable toward the group and that you don't care too much for the group. You would rate at the 50 degree mark if you don't feel particularly warm or cold toward the group.
+
+
+	0
+	10
+	20
+	30
+	40
+	50
+	60
+	70
+	80
+	90
+	100
+	
+
+Blacks (W3_40_1)
+	  
+
+	Latinos (W3_40_2)
+	  
+
+	Whites (W3_40_3)
+	  
+
+	Asian Americans (W3_40_4)
+	  
+
+	Feminists (W3_40_5)
+	  
+
+	
+
+W3_41 Here is a list of statements. For each statement, please share if you agree or disagree with the statement.
+
+
+	Strongly Agree (1)
+	Somewhat Agree (2)
+	Neither agree nor disagree (3)
+	Somewhat Disagree (4)
+	Strongly Disagree (5)
+	Irish, Italians, Jewish and many other minorities overcame prejudice and worked their way up. Blacks should do the same without any special favors (W3_41_1) 
+	* 	* 	* 	* 	* 	Generations of slavery and discrimination have created conditions that make it difficult for Blacks to work their way out of the lower class (W3_41_2) 
+	* 	* 	* 	* 	* 	Over the past few years, Blacks have gotten less than they deserve (W3_41_3) 
+	* 	* 	* 	* 	* 	It’s really a matter of some people not trying hard enough, if Blacks would only try harder they could be just as well off (W3_41_4) 
+	* 	* 	* 	* 	* 	
+
+W3_42 Do you agree or disagree with the following statements? In comparison to other racial minorities (i.e. Black Americans, Latinos, Native Americans)...
+
+
+	Strongly agree (1)
+	Somewhat agree (2)
+	Neither agree nor disagree (3)
+	Somewhat disagree (4)
+	Strongly disagree (5)
+	Despite experiences with racism, Asian Americans are more likely to achieve academic and economic success (W3_42_1) 
+	* 	* 	* 	* 	* 	Asian Americans have a stronger work ethic (W3_42_2) 
+	* 	* 	* 	* 	* 	Asian Americans are more likely to be treated as equals to European Americans (W3_42_3) 
+	* 	* 	* 	* 	* 	Asian Americans are less likely to experience racism in the United States (W3_42_4) 
+	* 	* 	* 	* 	* 	
+
+
+
+W3_43 Thank you for participating in this study. The goal of this study is to get a sense for how Asian Americans view events that have occurred in 2020. Asian American political experiences are understudied and this survey gives us a chance to better understand Asian American perceptions.  
+ As you exit the survey, you will be led to a link to collect your reward points for successfully completing the survey. In addition, please use the space below to provide any comments or feedback for how the survey might be improved. Please share any thoughts or concerns you have about this survey. We hope that you and your families stay safe and healthy.     Thank you for your time.
+________________________________________________________________
+
+
+End of Block: Closing Debrief

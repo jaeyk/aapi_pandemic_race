@@ -1,0 +1,136 @@
+---
+title: "Data analysis"
+author: "Jae Yeon Kim"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Load packages 
+
+```{r}
+if (!require(pacman)) install.packages("pacman")
+
+pacman::p_load(tidyverse, # tidyverse 
+               car, # companion to applied regression  
+               here, # computational reproducibility 
+               glue, # gluing objects and strings 
+               tidylog, # logging analysis
+               naniar, # missing data 
+               zeallot) # multiple assignments 
+
+source(here("functions/utils.r"))
+
+
+```
+
+# Load data 
+
+```{r message = FALSE}
+w123 <- read_csv(here("raw_data/complete_123.csv"))
+w12 <- read_csv(here("raw_data/w1w2.csv"))
+```
+
+## Calculate attrition rate 
+
+$\textrm{Attrition rate} = \frac{\textrm{# of pre_wave participants} - \textrm{# of post_wave participants}}{\textrm{# pre_wave participants}}$
+
+```{r}
+attr_rate <- function(pre, post) {
+    out <- (pre - post)/pre 
+    round(out, 2)}
+
+glue("The attrition rate between w1 and w2 is: {attr_rate(1558, nrow(w12)) * 100}%")
+glue("The attrition rate between w2 and w3 is: {attr_rate(nrow(w12), nrow(w123)) * 100}%")
+```
+
+# Data munging
+
+Make a copy 
+
+```{r}
+df <- w123
+```
+
+## Replace 9999 with NA
+
+```{r}
+round(mean(is.na(df)), 2) # No NA values at this point 
+
+df <- na_if(df, 9999)
+
+# Overall missingness 
+round(mean(is.na(df)), 2) # about 13% missing  
+```
+
+## Calculate the missingness in the data 
+
+```{r}
+# Check the rate of missing variables in the dataset 
+map_df(df, ~is.na(.) %>% mean() %>% round(2))
+
+# Visualize missing data 
+naniar::vis_miss(df) +
+  coord_flip()
+```
+
+## Rename columns 
+
+```{r}
+df <- df %>%  
+    rename_with(~(sub("_", "_q_", .x)), starts_with("W"))
+
+names(df)[str_detect(names(df), "disc")] <- c("W3_disc_covid", "W3_disc_asian", "W2_disc_covid", "W2_disc_asian", "W1_disc_asian", "W1_disc_personal")
+```
+
+## Recode values 
+
+```{r}
+# Discrimination against Asians
+c(df$W2_disc_asian, df$W3_disc_asian) %<-%  map(list(df$W2_disc_asian, df$W3_disc_asian),  recode_response)
+```
+
+```{r}
+#  Party ID
+c(df$W1_q_party, df$W2_q_party, df$W3_q_party) %<-%  map(list(df$W1_q_party, df$W2_q_party, df$W3_q_party),  recode_party)
+```
+
+```{r}
+# Gender
+c(df$W1_q_gender, df$W3_q_gender) %<-%  map(list(df$W1_q_gender, df$W3_q_gender),  recode_dummy)
+
+# US born
+c(df$W1_q_usborn, df$W2_q_usborn, df$W3_q_usborn) %<-%  map(list(df$W1_q_usborn, df$W2_q_usborn, df$W3_q_usborn), recode_dummy)
+```
+
+## Reshape data 
+
+These variables are included in the data across the waves:
+
+```{r}
+reduce(list(extract_name(df, 'W1'), extract_name(df, 'W2'), extract_name(df, 'W3')), intersect)
+```
+
+Reshape the data based on these common questions. 
+
+```{r}
+df_long <- df %>%
+    pivot_longer(
+      cols = matches("q_us_born|q_party|disc_asian|q_NatOrigin"), # Choose multiple values using regex 
+      names_to = c("wave", ".value"), 
+      names_pattern = "(..)_(.*)")
+```
+
+```{r}
+nrow(df) # the number of observations in the wide data 
+nrow(df_long) # the number of observations in the long data 
+```
+
+## Save data 
+
+```{r}
+save(df, df_long, file = here("processed_data/dfs.Rdata"))
+```
+
+
