@@ -21,15 +21,57 @@ pacman::p_load(tidyverse, # tidyverse
                zeallot) # multiple assignments 
 
 source(here("functions/utils.r"))
-
-
 ```
 
-# Load data 
+# Load and merge data 
 
 ```{r message = FALSE}
-w123 <- read_csv(here("raw_data/complete_123.csv"))
-w12 <- read_csv(here("raw_data/w1w2.csv"))
+# Check the file names
+# list.files(here("raw_data"))
+
+w1 <- read_csv(here("raw_data/wave1.csv"))[-c(1:2),]
+w2 <- read_csv(here("raw_data/wave2.csv"))[-c(1:2),]
+w3 <- read_csv(here("raw_data/wave3.csv"))[-c(1:2),]
+codebook <- read_csv(here("raw_data/codebook.csv"))
+
+# make unique variations of drop variable 
+codebook$alt_name[grepl("drop", codebook$alt_name)] <- make.unique(codebook$alt_name[grepl("drop", codebook$alt_name)], sep = "_")
+```
+
+# Change column names 
+
+```{r message = FALSE}
+names(w1) <- subset(codebook, wave == "w1")$alt_name
+names(w2) <- subset(codebook, wave == "w2")$alt_name
+names(w3) <- subset(codebook, wave == "w3")$alt_name
+```
+
+# Drop "drop_" columns 
+
+```{r}
+w1 <- w1 %>% select(!contains("drop"))
+w2 <- w2 %>% select(!contains("drop"))
+w3 <- w3 %>% select(!contains("drop"))
+```
+
+# Merge dataframes 
+
+```{r}
+w12 <- inner_join(w1, w2, by = c("respondent.id"),
+                  suffix = c("_w1", "_w2"))
+w13 <- inner_join(w1, w3, by = c("pid"), 
+                  suffix = c("_w1", "_w3"))
+
+complete <- left_join(w13, w12)
+
+complete <- complete %>%
+  dplyr::select(!matches("response|respondent|pid"))
+```
+
+```{r}
+write.csv(w12, here("processed_data/w12.csv"))
+write.csv(w13, here("processed_data/w13.csv"))
+write.csv(complete, here("processed_data/complete.csv"))
 ```
 
 ## Calculate attrition rate 
@@ -41,8 +83,8 @@ attr_rate <- function(pre, post) {
     out <- (pre - post)/pre 
     round(out, 2)}
 
-glue("The attrition rate between w1 and w2 is: {attr_rate(1558, nrow(w12)) * 100}%")
-glue("The attrition rate between w2 and w3 is: {attr_rate(nrow(w12), nrow(w123)) * 100}%")
+glue("The attrition rate between w1 and w2 is: {attr_rate({nrow(w1)}, nrow(w12)) * 100}%")
+glue("The attrition rate between w1 and w3 is: {attr_rate(nrow(w1), nrow(w13)) * 100}%")
 ```
 
 # Data munging
