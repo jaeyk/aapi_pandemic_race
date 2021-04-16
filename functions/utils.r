@@ -10,17 +10,6 @@ add_miss_cols <- function(df1, df2) {
 
 }
 
-# Make values consistent across waves
-
-make_consistent <- function(df, var){
-
-    df <- fill(df, var)
-
-    return(df$var)
-
-}
-
-
 # Calculate attrition rate
 attr_rate <- function(pre, post) {
     out <- (pre - post)/pre
