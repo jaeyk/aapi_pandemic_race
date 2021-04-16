@@ -59,7 +59,24 @@ w2 <- w2 %>% select(!contains("drop"))
 w3 <- w3 %>% select(!contains("drop"))
 ```
 
-Add an wave identifier 
+## Add missing variables in each wave
+
+```{r}
+w1 <- add_miss_cols(w1, w2)
+w2 <- add_miss_cols(w2, w1)
+
+w2 <- add_miss_cols(w2, w3)
+w3 <- add_miss_cols(w3, w2)
+
+w1 <- add_miss_cols(w1, w3)
+w3 <- add_miss_cols(w3, w1)
+
+# Check
+ncol(w1) == ncol(w2)
+ncol(w2) == ncol(w3)
+```
+
+## Add an wave identifier 
 
 ```{r}
 names(w1) <- glue("W1_{names(w1)}")
@@ -117,13 +134,10 @@ long13 <- w13 %>%
 long_complete <- left_join(long13, long12) %>%
   dplyr::select(!matches("response|respondent|pid"))
 
+# 1914 obs and 95 variables 
 dim(long_complete)
-```
 
-```{r}
 write.csv(long_complete, here("processed_data/panel_data.csv"))
-
-long_complete$
 ```
 
 ## Calculate attrition rate 

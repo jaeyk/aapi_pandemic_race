@@ -1,3 +1,15 @@
+# Add the columns present in df2 but missing in df2 to df1
+
+add_miss_cols <- function(df1, df2) {
+
+    diff.col.names <- setdiff(names(df2), names(df1))
+
+    df1[diff.col.names] <- NA
+
+    return(df1)
+
+}
+
 # Calculate attrition rate
 attr_rate <- function(pre, post) {
     out <- (pre - post)/pre
