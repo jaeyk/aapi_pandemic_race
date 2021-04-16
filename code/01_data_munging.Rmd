@@ -13,7 +13,7 @@ output:
 if (!require(pacman)) install.packages("pacman")
 
 pacman::p_load(tidyverse, # tidyverse 
-               car, # companion to applied regression  
+               panelr, # panel data analysis
                here, # computational reproducibility 
                glue, # gluing objects and strings 
                tidylog, # logging analysis
@@ -23,7 +23,9 @@ pacman::p_load(tidyverse, # tidyverse
 source(here("functions/utils.r"))
 ```
 
-# Load and merge data 
+# Tidying 
+
+## Load and merge data 
 
 ```{r message = FALSE}
 # Check the file names
@@ -32,13 +34,16 @@ source(here("functions/utils.r"))
 w1 <- read_csv(here("raw_data/wave1.csv"))[-c(1:2),]
 w2 <- read_csv(here("raw_data/wave2.csv"))[-c(1:2),]
 w3 <- read_csv(here("raw_data/wave3.csv"))[-c(1:2),]
+```
+
+```{r message = FALSE}
 codebook <- read_csv(here("raw_data/codebook.csv"))
 
 # make unique variations of drop variable 
 codebook$alt_name[grepl("drop", codebook$alt_name)] <- make.unique(codebook$alt_name[grepl("drop", codebook$alt_name)], sep = "_")
 ```
 
-# Change column names 
+## Change column names 
 
 ```{r message = FALSE}
 names(w1) <- subset(codebook, wave == "w1")$alt_name
@@ -46,7 +51,7 @@ names(w2) <- subset(codebook, wave == "w2")$alt_name
 names(w3) <- subset(codebook, wave == "w3")$alt_name
 ```
 
-# Drop "drop_" columns 
+## Drop "drop_" columns 
 
 ```{r}
 w1 <- w1 %>% select(!contains("drop"))
@@ -54,24 +59,71 @@ w2 <- w2 %>% select(!contains("drop"))
 w3 <- w3 %>% select(!contains("drop"))
 ```
 
-# Merge dataframes 
+Add an wave identifier 
 
 ```{r}
-w12 <- inner_join(w1, w2, by = c("respondent.id"),
-                  suffix = c("_w1", "_w2"))
-w13 <- inner_join(w1, w3, by = c("pid"), 
-                  suffix = c("_w1", "_w3"))
+names(w1) <- glue("W1_{names(w1)}")
+names(w2) <- glue("W2_{names(w2)}")
+names(w3) <- glue("W3_{names(w3)}")
+```
 
-complete <- left_join(w13, w12)
+## Merge dataframes 
 
-complete <- complete %>%
+```{r}
+# Inner join
+w12 <- inner_join(w1, w2, by = c("W1_respondent.id" = "W2_respondent.id"))
+
+w13 <- inner_join(w1, w3, by = c("W1_pid" = "W3_pid"))
+
+# Rename ID columns 
+w12 <- w12 %>%
+  rename("id" = "W1_respondent.id") 
+
+w13 <- w13 %>%
+  rename("id" = "W1_pid") 
+
+# Remove duplicates 
+w12 <- w12[!duplicated(w12$id),]
+w13 <- w13[!duplicated(w13$id),]
+```
+
+## Find common quuestions 
+
+```{r}
+# Wave 1 and 2
+common.q12 <- intersect(extract_name(w12, "W1"), 
+extract_name(w12, "W2"))
+
+long12 <- w12 %>%
+  select(matches(common.q12) | id) %>%
+  long_panel(prefix = "W", suffix = "_", 
+             begin = 1, end = 2, 
+             label_location = "beginning")
+
+# Wave 1 and 2
+common.q13 <- intersect(extract_name(w13, "W1"), 
+extract_name(w13, "W3"))
+
+long13 <- w13 %>%
+  select(matches(common.q13) | id) %>%
+  long_panel(prefix = "W", suffix = "_", 
+             begin = 1, end = 3, 
+             label_location = "beginning")
+```
+
+## Final merging 
+
+```{r}
+long_complete <- left_join(long13, long12) %>%
   dplyr::select(!matches("response|respondent|pid"))
+
+dim(long_complete)
 ```
 
 ```{r}
-write.csv(w12, here("processed_data/w12.csv"))
-write.csv(w13, here("processed_data/w13.csv"))
-write.csv(complete, here("processed_data/complete.csv"))
+write.csv(long_complete, here("processed_data/panel_data.csv"))
+
+long_complete$
 ```
 
 ## Calculate attrition rate 
@@ -83,96 +135,32 @@ attr_rate <- function(pre, post) {
     out <- (pre - post)/pre 
     round(out, 2)}
 
-glue("The attrition rate between w1 and w2 is: {attr_rate({nrow(w1)}, nrow(w2)) * 100}%")
-glue("The attrition rate between w2 and w3 is: {attr_rate(nrow(w2), nrow(w3)) * 100}%")
+glue("The attrition rate between w1 and w2 is: {attr_rate({nrow(w1)}, nrow(w12)) * 100}%")
+glue("The attrition rate between w2 and w3 is: {attr_rate(nrow(w12), nrow(w13)) * 100}%")
 ```
 
-# Data munging
+# Munging
 
 Make a copy 
 
 ```{r}
-df <- w123
+df <- long_complete
 ```
 
 ## Replace 9999 with NA
 
 ```{r}
-round(mean(is.na(df)), 2) # No NA values at this point 
-
 df <- na_if(df, 9999)
-
-# Overall missingness 
-round(mean(is.na(df)), 2) # about 13% missing  
-```
-
-## Calculate the missingness in the data 
-
-```{r}
-# Check the rate of missing variables in the dataset 
-map_df(df, ~is.na(.) %>% mean() %>% round(2))
-
-# Visualize missing data 
-naniar::vis_miss(df) +
-  coord_flip()
-```
-
-## Rename columns 
-
-```{r}
-df <- df %>%  
-    rename_with(~(sub("_", "_q_", .x)), starts_with("W"))
-
-names(df)[str_detect(names(df), "disc")] <- c("W3_disc_covid", "W3_disc_asian", "W2_disc_covid", "W2_disc_asian", "W1_disc_asian", "W1_disc_personal")
 ```
 
 ## Recode values 
 
 ```{r}
 # Discrimination against Asians
-c(df$W2_disc_asian, df$W3_disc_asian) %<-%  map(list(df$W2_disc_asian, df$W3_disc_asian),  recode_response)
-```
 
-```{r}
 #  Party ID
-c(df$W1_q_party, df$W2_q_party, df$W3_q_party) %<-%  map(list(df$W1_q_party, df$W2_q_party, df$W3_q_party),  recode_party)
+df$party.id <- recode_party(df$party.id)
+
+# Create dummy variables: gender, usborn
+c(df$gender, df$usborn) %<-% map(list(df$gender, df$usborn), recode_dummy)
 ```
-
-```{r}
-# Gender
-c(df$W1_q_gender, df$W3_q_gender) %<-%  map(list(df$W1_q_gender, df$W3_q_gender),  recode_dummy)
-
-# US born
-c(df$W1_q_usborn, df$W2_q_usborn, df$W3_q_usborn) %<-%  map(list(df$W1_q_usborn, df$W2_q_usborn, df$W3_q_usborn), recode_dummy)
-```
-
-## Reshape data 
-
-These variables are included in the data across the waves:
-
-```{r}
-reduce(list(extract_name(df, 'W1'), extract_name(df, 'W2'), extract_name(df, 'W3')), intersect)
-```
-
-Reshape the data based on these common questions. 
-
-```{r}
-df_long <- df %>%
-    pivot_longer(
-      cols = matches("q_us_born|q_party|disc_asian|q_NatOrigin"), # Choose multiple values using regex 
-      names_to = c("wave", ".value"), 
-      names_pattern = "(..)_(.*)")
-```
-
-```{r}
-nrow(df) # the number of observations in the wide data 
-nrow(df_long) # the number of observations in the long data 
-```
-
-## Save data 
-
-```{r}
-save(df, df_long, file = here("processed_data/dfs.Rdata"))
-```
-
-
