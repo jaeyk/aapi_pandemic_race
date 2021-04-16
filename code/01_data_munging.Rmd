@@ -83,8 +83,8 @@ attr_rate <- function(pre, post) {
     out <- (pre - post)/pre 
     round(out, 2)}
 
-glue("The attrition rate between w1 and w2 is: {attr_rate({nrow(w1)}, nrow(w12)) * 100}%")
-glue("The attrition rate between w1 and w3 is: {attr_rate(nrow(w1), nrow(w13)) * 100}%")
+glue("The attrition rate between w1 and w2 is: {attr_rate({nrow(w1)}, nrow(w2)) * 100}%")
+glue("The attrition rate between w2 and w3 is: {attr_rate(nrow(w2), nrow(w3)) * 100}%")
 ```
 
 # Data munging
