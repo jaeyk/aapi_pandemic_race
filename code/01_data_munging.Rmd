@@ -134,6 +134,32 @@ long13 <- w13 %>%
 long_complete <- left_join(long13, long12) %>%
   dplyr::select(!matches("response|respondent|pid"))
 
+# Check how many variables were added to each wave
+long_complete %>%
+  data.frame() %>%
+  group_by(wave) %>%
+  miss_var_summary() %>%
+  filter(pct_miss == 100) %>%
+  count(wave) %>%
+  ggplot(aes(x = wave, y = n)) +
+    geom_col()
+
+# Fill in missing values using the previous wave information
+
+# Target variables
+vars <- c("race", "gender", "natorigin", "usborn")
+
+# Creating the code for copying and pasting programmatically
+glue("long_complete <- fill(long_complete, {vars})")
+
+long_complete <- fill(long_complete, race)
+long_complete <- fill(long_complete, gender)
+long_complete <- fill(long_complete, natorigin)
+long_complete <- fill(long_complete, usborn)
+```
+
+
+```{r}
 # 1914 obs and 95 variables 
 dim(long_complete)
 
