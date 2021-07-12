@@ -231,7 +231,7 @@ df <- bind_rows(df1, df23)
 c(df$gender, df$usborn) %<-% map(list(df$gender, df$usborn), recode_dummy)
 
 # Check 
-unique(df$party.id)
+unique(df$party.id) %in% c("Republican", "Independent", "Democrat", NA) == TRUE
 ```
 
 # Export data 
