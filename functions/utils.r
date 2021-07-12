@@ -31,11 +31,22 @@ recode_response <- function(df) {
 
 # Recode party
 
-recode_party <- function(df) {
+recode_party_w1 <- function(df) {
 
     df[df == 1] <- "Independent"
     df[df == 2] <- "Democrat"
     df[df == 3] <- "Republican"
+
+    return(df)
+}
+
+recode_party_w23 <- function(df) {
+
+    df[df == 1] <- "Republican"
+    df[df == 2] <- "Independent"
+    df[df == 3] <- "Democrat"
+    df[df == 4] <- NA
+    df[df == 5] <- NA
 
     return(df)
 }

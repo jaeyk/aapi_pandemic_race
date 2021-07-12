@@ -18,7 +18,8 @@ pacman::p_load(tidyverse, # tidyverse
                glue, # gluing objects and strings 
                tidylog, # logging analysis
                naniar, # missing data 
-               zeallot) # multiple assignments 
+               zeallot, # multiple assignments 
+               readxl)
 
 source(here("functions/utils.r"))
 ```
@@ -30,15 +31,21 @@ source(here("functions/utils.r"))
 ```{r message = FALSE}
 # Check the file names
 # list.files(here("raw_data"))
-
 w1 <- read_csv(here("raw_data/wave1.csv"))[-c(1:2),]
 w2 <- read_csv(here("raw_data/wave2.csv"))[-c(1:2),]
-w3 <- read_csv(here("raw_data/wave3.csv"))[-c(1:2),]
+w3 <- readxl::read_xls(here("raw_data/wave3_alt.xls"))[-c(1:2),]
+
+# Check dimensions 
+ncol(w1) == nrow(subset(codebook, wave == "w1"))
+ncol(w2) == nrow(subset(codebook, wave == "w2"))
+ncol(w3) == nrow(subset(codebook, wave == "w3"))
 ```
 
 ```{r message = FALSE}
-codebook <- read_csv(here("raw_data/codebook.csv"))
+codebook <- read_csv(here("raw_data/codebook_alt.csv"))
+```
 
+```{r}
 # make unique variations of drop variable 
 codebook$alt_name[grepl("drop", codebook$alt_name)] <- make.unique(codebook$alt_name[grepl("drop", codebook$alt_name)], sep = "_")
 ```
@@ -65,15 +72,29 @@ w3 <- w3 %>% select(!contains("drop"))
 w1 <- add_miss_cols(w1, w2)
 w2 <- add_miss_cols(w2, w1)
 
-w2 <- add_miss_cols(w2, w3)
+#w2 <- add_miss_cols(w2, w3)
 w3 <- add_miss_cols(w3, w2)
 
-w1 <- add_miss_cols(w1, w3)
+#w1 <- add_miss_cols(w1, w3)
 w3 <- add_miss_cols(w3, w1)
 
 # Check
-ncol(w1) == ncol(w2)
-ncol(w2) == ncol(w3)
+unique(w1$party.id)
+# 1 == Independent 
+# 2 == Democrat 
+# 3 == Republican
+unique(w2$party.id) 
+# 1 == Republican 
+# 2 == Independent 
+# 3 == Democrat 
+# 4 == Some other party
+# 5 == I don't know 
+unique(w3$party.id)
+# 1 == Republican 
+# 2 == Independent 
+# 3 == Democrat 
+# 4 == Some other party
+# 5 == I don't know 
 ```
 
 ## Add an wave identifier 
@@ -160,7 +181,7 @@ long_complete <- fill(long_complete, usborn)
 
 
 ```{r}
-# 1914 obs and 95 variables 
+# 1992 obs and 76 variables 
 dim(long_complete)
 
 write.csv(long_complete, here("processed_data/panel_data.csv"))
@@ -197,10 +218,24 @@ df <- na_if(df, 9999)
 
 ```{r}
 # Discrimination against Asians
+df1 <- subset(df, wave == 1) 
+df23 <- subset(df, wave != 1)
 
-#  Party ID
-df$party.id <- recode_party(df$party.id)
+# Party ID
+df1$party.id <- recode_party_w1(df1$party.id)
+df23$party.id <- recode_party_w23(df23$party.id)
+
+df <- bind_rows(df1, df23)
 
 # Create dummy variables: gender, usborn
 c(df$gender, df$usborn) %<-% map(list(df$gender, df$usborn), recode_dummy)
+
+# Check 
+unique(df$party.id)
+```
+
+# Export data 
+
+```{r}
+write_csv(df, here("processed_data", "panel_data_cleaned.csv"))
 ```
