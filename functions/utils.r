@@ -60,3 +60,13 @@ recode_dummy <- function(df) {
     return(df)
 
 }
+
+# Calculate group mean
+
+group_mean <- function(x){
+    out <- df %>%
+        group_by(wave) %>%
+        summarise(mean = mean(x, na.rm = TRUE))
+
+    return(out)
+}

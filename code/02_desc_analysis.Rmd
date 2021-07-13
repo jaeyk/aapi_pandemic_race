@@ -30,14 +30,14 @@ source(here("functions/utils.r"))
 df <- read_csv(here("processed_data", "panel_data_cleaned.csv"))
 ```
 
-# Difference-in-means
+# Summarize by group
 
 ```{r}
 disc.list <- names(df)[str_detect(names(df), "disc")][-5]
 
 df %>%
     group_by(wave) %>%
-    summarise(mean = mean(get(disc.list[7]), na.rm = TRUE))
+    summarise(mean = mean(get(disc.list[1]), na.rm = TRUE))
 
-disc.list[5]
+subset(df, wave == 3)$gendiscrim
 ``` 
