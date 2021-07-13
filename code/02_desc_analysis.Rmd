@@ -1,0 +1,45 @@
+---
+title: "Descriptive analysis"
+author: "Jae Yeon Kim"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Load packages 
+
+```{r}
+if (!require(pacman)) install.packages("pacman")
+
+pacman::p_load(tidyverse, # tidyverse 
+               panelr, # panel data analysis
+               here, # computational reproducibility 
+               glue, # gluing objects and strings 
+               tidylog, # logging analysis
+               naniar, # missing data 
+               zeallot, # multiple assignments 
+               readxl)
+
+source(here("functions/utils.r"))
+```
+
+# Load files 
+
+```{r}
+df <- read_csv(here("processed_data", "panel_data_cleaned.csv"))
+```
+
+# Difference-in-means
+
+```{r}
+
+df %>%
+  group_by(wave) %>%
+  summarise(mean_disc = mean(apa.discrim.rona, na.rm = TRUE))
+
+  ggplot(aes(x = wave, y = expdiscrim)) +
+    geom_col(position = "dodge", stat = "summary", fun.y = "mean")
+
+df$expdiscrim
+```

@@ -34,15 +34,15 @@ source(here("functions/utils.r"))
 w1 <- read_csv(here("raw_data/wave1.csv"))[-c(1:2),]
 w2 <- read_csv(here("raw_data/wave2.csv"))[-c(1:2),]
 w3 <- readxl::read_xls(here("raw_data/wave3_alt.xls"))[-c(1:2),]
+```
+
+```{r message = FALSE}
+codebook <- read_csv(here("raw_data/codebook_alt.csv"))
 
 # Check dimensions 
 ncol(w1) == nrow(subset(codebook, wave == "w1"))
 ncol(w2) == nrow(subset(codebook, wave == "w2"))
 ncol(w3) == nrow(subset(codebook, wave == "w3"))
-```
-
-```{r message = FALSE}
-codebook <- read_csv(here("raw_data/codebook_alt.csv"))
 ```
 
 ```{r}
@@ -69,13 +69,21 @@ w3 <- w3 %>% select(!contains("drop"))
 ## Add missing variables in each wave
 
 ```{r}
+# Check
+names(w1)[str_detect(names(w1), "disc")]
+# "gendiscrim" "expdiscrim"
+names(w2)[str_detect(names(w2), "disc")]
+# [1] "apa.discrim.rona" "apa.discrim.who" 
+# [3] "gendiscrim" 
+names(w3)[str_detect(names(w3), "disc")]
+# [1] "apa.discrim.rona"     "civic.engage.discuss"
+# [3] "gendiscrim"           "job.discrim"    
+# [5] "work.discrim"         "police.discrim" 
+# [7] "housing.discrim"      "restaurant.discrim" 
+```
+```{r}
 w1 <- add_miss_cols(w1, w2)
-w2 <- add_miss_cols(w2, w1)
-
-#w2 <- add_miss_cols(w2, w3)
 w3 <- add_miss_cols(w3, w2)
-
-#w1 <- add_miss_cols(w1, w3)
 w3 <- add_miss_cols(w3, w1)
 
 # Check
