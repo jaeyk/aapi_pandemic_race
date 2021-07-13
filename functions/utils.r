@@ -61,12 +61,28 @@ recode_dummy <- function(df) {
 
 }
 
+## for bootstrapping 95% confidence intervals; Borrowed from Nick Camp's code from Jaren, Nick, and my shared project
+
+theta <- function(x, xdata, na.rm = T) {
+    mean(xdata[x], na.rm = na.rm)
+}
+
+ci.low <- function(x, na.rm = T) {
+    mean(x, na.rm = na.rm) - quantile(bootstrap::bootstrap(1:length(x), 1000, theta, x, na.rm = na.rm)$thetastar, .025, na.rm = na.rm)
+}
+
+ci.high <- function(x, na.rm = T) {
+    quantile(bootstrap::bootstrap(1:length(x), 1000, theta, x, na.rm = na.rm)$thetastar, .975, na.rm = na.rm) - mean(x, na.rm = na.rm)
+}
+
 # Calculate group mean
 
 group_mean <- function(x){
     out <- df %>%
         group_by(wave) %>%
-        summarise(mean = mean(x, na.rm = TRUE))
+        summarise(mean = mean(get(disc.list[x]), na.rm = TRUE),
+                  ci_high = ci.high(get(disc.list[x])),
+                  ci_low = ci.low(get(disc.list[x])))
 
     return(out)
 }

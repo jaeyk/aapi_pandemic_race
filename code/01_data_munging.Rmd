@@ -43,6 +43,9 @@ codebook <- read_csv(here("raw_data/codebook_alt.csv"))
 ncol(w1) == nrow(subset(codebook, wave == "w1"))
 ncol(w2) == nrow(subset(codebook, wave == "w2"))
 ncol(w3) == nrow(subset(codebook, wave == "w3"))
+
+codebook %>%
+  filter(str_detect(alt_name, "gen"))
 ```
 
 ```{r}
@@ -168,7 +171,7 @@ long_df <- left_join(w13, w12, by = c("W1_pid" = "W1_pid"))
 long_df <- long_df %>%
   select(!contains(".y"))
 
-names(long_df) <- str_replace(names(long_df), ".x", "")
+names(long_df) <- str_replace_all(names(long_df), ".x", "")
 ```
 
 ## Bind by rows 

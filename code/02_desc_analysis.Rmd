@@ -19,7 +19,12 @@ pacman::p_load(tidyverse, # tidyverse
                tidylog, # logging analysis
                naniar, # missing data 
                zeallot, # multiple assignments 
-               readxl)
+               readxl, 
+               ggpubr, 
+               broom)
+
+# for publication-friendly theme 
+theme_set(theme_pubr())
 
 source(here("functions/utils.r"))
 ```
@@ -35,9 +40,25 @@ df <- read_csv(here("processed_data", "panel_data_cleaned.csv"))
 ```{r}
 disc.list <- names(df)[str_detect(names(df), "disc")][-5]
 
-df %>%
-    group_by(wave) %>%
-    summarise(mean = mean(get(disc.list[1]), na.rm = TRUE))
+group_sum <- purrr::map_dfr(seq(disc.list), group_mean) %>%
+    mutate(variable = rep(disc.list, each = 3)) %>%
+    filter(!is.na(mean)) 
 
-subset(df, wave == 3)$gendiscrim
+group_sum %>%
+    filter(str_detect(variable, "rona|gendi")) %>%
+    ggplot(aes(x = wave, y = mean,
+               ymax = mean + ci_high, 
+               ymin = mean - ci_low)) +
+        geom_pointrange() +
+        ggrepel::geom_text_repel(aes(label = round(mean, 2))) +
+        facet_wrap(~variable) +
+        labs(title = "General vs. COVID-specific discrimination perception",
+            x = "Wave", y = "Average response")
+
+ggsave(here("outputs", "disc.perception.png"))
+
+t_test_result <- broom::tidy(t.test(subset(df, wave == 2)$apa.discrim.rona,
+       subset(df, wave == 3)$apa.discrim.rona))
+
+t_test_result
 ``` 
