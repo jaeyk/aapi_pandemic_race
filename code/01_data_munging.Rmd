@@ -69,23 +69,30 @@ w3 <- w3 %>% select(!contains("drop"))
 ## Add missing variables in each wave
 
 ```{r}
-# Check
-names(w1)[str_detect(names(w1), "disc")]
-# "gendiscrim" "expdiscrim"
-names(w2)[str_detect(names(w2), "disc")]
-# [1] "apa.discrim.rona" "apa.discrim.who" 
-# [3] "gendiscrim" 
-names(w3)[str_detect(names(w3), "disc")]
-# [1] "apa.discrim.rona"     "civic.engage.discuss"
-# [3] "gendiscrim"           "job.discrim"    
-# [5] "work.discrim"         "police.discrim" 
-# [7] "housing.discrim"      "restaurant.discrim" 
-```
-```{r}
-w1 <- add_miss_cols(w1, w2)
-w3 <- add_miss_cols(w3, w2)
-w3 <- add_miss_cols(w3, w1)
+w1_copy <- w1
+w2_copy <- w2
+w3_copy <- w3
 
+# Add missing columns between w1 and w2 to w1
+w1_copy <- add_miss_cols(w1_copy, w2_copy)
+w2_copy <- add_miss_cols(w2_copy, w1_copy)
+# Add missing columns between w3 and w2 to w3
+w3_copy <- add_miss_cols(w3_copy, w2_copy)
+w2_copy <- add_miss_cols(w2_copy, w3_copy)
+# Add missing columns between w3 and w1 to w3
+w3_copy <- add_miss_cols(w3_copy, w1_copy)
+w1_copy <- add_miss_cols(w1_copy, w3_copy)
+
+# Check
+sum(is.na(w2_copy$expdiscrim)) == nrow(w2_copy)
+sum(is.na(w3_copy$expdiscrim)) == nrow(w3_copy)
+
+w1 <- w1_copy
+w2 <- w2_copy
+w3 <- w3_copy
+```
+
+```{r}
 # Check
 unique(w1$party.id)
 # 1 == Independent 
@@ -133,45 +140,77 @@ w12 <- w12[!duplicated(w12$id),]
 w13 <- w13[!duplicated(w13$id),]
 ```
 
-## Find common quuestions 
+## Calculate attrition rate 
+
+$\textrm{Attrition rate} = \frac{\textrm{# of pre_wave participants} - \textrm{# of post_wave participants}}{\textrm{# pre_wave participants}}$
+
+```{r}
+attr_rate <- function(pre, post) {
+    out <- (pre - post)/pre 
+    round(out, 2)}
+
+glue("The attrition rate between w1 and w2 is: {attr_rate({nrow(w1)}, nrow(w12)) * 100}%")
+glue("The attrition rate between w2 and w3 is: {attr_rate(nrow(w12), nrow(w13)) * 100}%")
+```
+
+## Find common questions 
 
 ```{r}
 # Wave 1 and 2
-common.q12 <- intersect(extract_name(w12, "W1"), 
-extract_name(w12, "W2"))
+common.q12 <- intersect(extract_name(w12, "W2"), extract_name(w12, "W1"))
 
 long12 <- w12 %>%
-  select(matches(common.q12) | id) %>%
-  long_panel(prefix = "W", suffix = "_", 
-             begin = 1, end = 2, 
-             label_location = "beginning")
+  select(matches(common.q12) | id) 
 
-# Wave 1 and 2
-common.q13 <- intersect(extract_name(w13, "W1"), 
-extract_name(w13, "W3"))
+# Wave 1 and 3
+common.q13 <- intersect(extract_name(w13, "W3"), extract_name(w13, "W1"))
 
 long13 <- w13 %>%
-  select(matches(common.q13) | id) %>%
-  long_panel(prefix = "W", suffix = "_", 
-             begin = 1, end = 3, 
-             label_location = "beginning")
+  select(matches(common.q13) | id) 
+
+long_df <- left_join(w12, w13)
+```
+
+## Bind by rows 
+
+```{r}
+w1 <- long_df %>%
+  select(matches("W1|response|respondent|pid")) %>%
+  select(!matches("W2|W3"))
+
+names(w1) <- str_replace_all(names(w1), "W1_", "")
+
+w1$wave <- 1
+
+w2 <- long_df %>%
+  select(matches("W2|response|respondent|pid")) %>%
+  select(!matches("W1|W3"))
+
+names(w2) <- str_replace_all(names(w2), "W2_", "")
+
+w2$wave <- 2
+
+w3 <- long_df %>%
+  select(matches("W3|response|respondent|pid")) %>%
+  select(!matches("W1|W2"))
+
+names(w3) <- str_replace_all(names(w3), "W3_", "")
+
+w3$wave <- 3
+
+w1$respondent.id <- NULL
+
+long_df <- bind_rows(w1, w2, w3)
+
+# Check
+subset(long_df, wave == 2)$expdiscrim
 ```
 
 ## Final merging 
 
 ```{r}
-long_complete <- left_join(long13, long12) %>%
+long_complete <- long_df %>%
   dplyr::select(!matches("response|respondent|pid"))
-
-# Check how many variables were added to each wave
-long_complete %>%
-  data.frame() %>%
-  group_by(wave) %>%
-  miss_var_summary() %>%
-  filter(pct_miss == 100) %>%
-  count(wave) %>%
-  ggplot(aes(x = wave, y = n)) +
-    geom_col()
 
 # Fill in missing values using the previous wave information
 
@@ -189,23 +228,10 @@ long_complete <- fill(long_complete, usborn)
 
 
 ```{r}
-# 1992 obs and 76 variables 
+# 3228 obs and 105 variables 
 dim(long_complete)
 
 write.csv(long_complete, here("processed_data/panel_data.csv"))
-```
-
-## Calculate attrition rate 
-
-$\textrm{Attrition rate} = \frac{\textrm{# of pre_wave participants} - \textrm{# of post_wave participants}}{\textrm{# pre_wave participants}}$
-
-```{r}
-attr_rate <- function(pre, post) {
-    out <- (pre - post)/pre 
-    round(out, 2)}
-
-glue("The attrition rate between w1 and w2 is: {attr_rate({nrow(w1)}, nrow(w12)) * 100}%")
-glue("The attrition rate between w2 and w3 is: {attr_rate(nrow(w12), nrow(w13)) * 100}%")
 ```
 
 # Munging
@@ -225,7 +251,6 @@ df <- na_if(df, 9999)
 ## Recode values 
 
 ```{r}
-# Discrimination against Asians
 df1 <- subset(df, wave == 1) 
 df23 <- subset(df, wave != 1)
 

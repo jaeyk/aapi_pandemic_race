@@ -35,11 +35,6 @@ df <- read_csv(here("processed_data", "panel_data_cleaned.csv"))
 ```{r}
 
 df %>%
-  group_by(wave) %>%
-  summarise(mean_disc = mean(apa.discrim.rona, na.rm = TRUE))
-
   ggplot(aes(x = wave, y = expdiscrim)) +
     geom_col(position = "dodge", stat = "summary", fun.y = "mean")
-
-df$expdiscrim
 ```
