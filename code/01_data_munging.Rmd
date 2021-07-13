@@ -168,14 +168,15 @@ common.q13 <- intersect(extract_name(w13, "W3"), extract_name(w13, "W1"))
 long13 <- w13 %>%
   select(matches(common.q13) | id) 
 
-long_df <- left_join(w12, w13)
+long_df <- full_join(w12, w13) %>%
+  filter(!is.na(W3_gendiscrim))
 ```
 
 ## Bind by rows 
 
 ```{r}
 w1 <- long_df %>%
-  select(matches("W1|response|respondent|pid")) %>%
+  select(matches("W1")) %>%
   select(!matches("W2|W3"))
 
 names(w1) <- str_replace_all(names(w1), "W1_", "")
@@ -183,7 +184,7 @@ names(w1) <- str_replace_all(names(w1), "W1_", "")
 w1$wave <- 1
 
 w2 <- long_df %>%
-  select(matches("W2|response|respondent|pid")) %>%
+  select(matches("W2")) %>%
   select(!matches("W1|W3"))
 
 names(w2) <- str_replace_all(names(w2), "W2_", "")
@@ -191,7 +192,7 @@ names(w2) <- str_replace_all(names(w2), "W2_", "")
 w2$wave <- 2
 
 w3 <- long_df %>%
-  select(matches("W3|response|respondent|pid")) %>%
+  select(matches("W3")) %>%
   select(!matches("W1|W2"))
 
 names(w3) <- str_replace_all(names(w3), "W3_", "")
@@ -200,16 +201,18 @@ w3$wave <- 3
 
 w1$respondent.id <- NULL
 
-long_df <- bind_rows(w1, w2, w3)
+binded_df <- bind_rows(w1, w2, w3)
+glue("The total # of participatns in each wave in the panel data: {nrow(binded_df)/3}")
 
 # Check
-subset(long_df, wave == 2)$expdiscrim
+subset(binded_df, wave == 2)$expdiscrim
+subset(binded_df, wave == 3)$gendiscrim
 ```
 
 ## Final merging 
 
 ```{r}
-long_complete <- long_df %>%
+completed_df <- binded_df %>%
   dplyr::select(!matches("response|respondent|pid"))
 
 # Fill in missing values using the previous wave information
@@ -217,21 +220,18 @@ long_complete <- long_df %>%
 # Target variables
 vars <- c("race", "gender", "natorigin", "usborn")
 
-# Creating the code for copying and pasting programmatically
-glue("long_complete <- fill(long_complete, {vars})")
-
-long_complete <- fill(long_complete, race)
-long_complete <- fill(long_complete, gender)
-long_complete <- fill(long_complete, natorigin)
-long_complete <- fill(long_complete, usborn)
+completed_df <- fill(completed_df, race)
+completed_df <- fill(completed_df, gender)
+completed_df <- fill(completed_df, natorigin)
+completed_df <- fill(completed_df, usborn)
 ```
 
 
 ```{r}
 # 3228 obs and 105 variables 
-dim(long_complete)
+dim(completed_df)
 
-write.csv(long_complete, here("processed_data/panel_data.csv"))
+write.csv(completed_df, here("processed_data/panel_data.csv"))
 ```
 
 # Munging
@@ -239,7 +239,7 @@ write.csv(long_complete, here("processed_data/panel_data.csv"))
 Make a copy 
 
 ```{r}
-df <- long_complete
+df <- completed_df
 ```
 
 ## Replace 9999 with NA

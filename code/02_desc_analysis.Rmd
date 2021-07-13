@@ -33,8 +33,11 @@ df <- read_csv(here("processed_data", "panel_data_cleaned.csv"))
 # Difference-in-means
 
 ```{r}
+disc.list <- names(df)[str_detect(names(df), "disc")][-5]
 
 df %>%
-  ggplot(aes(x = wave, y = expdiscrim)) +
-    geom_col(position = "dodge", stat = "summary", fun.y = "mean")
-```
+    group_by(wave) %>%
+    summarise(mean = mean(get(disc.list[7]), na.rm = TRUE))
+
+disc.list[5]
+``` 
