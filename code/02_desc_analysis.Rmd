@@ -99,11 +99,11 @@ group_sum %>%
                              "apa.discrim.rona" = "COVID-19 discrimination",
                              "gendiscrim" = 
                                  "General discrimination")) %>%
-    ggplot(aes(x = factor(wave_fac), y = mean - .5,
-               ymax = mean + ci_high - .5, 
-               ymin = mean - ci_low - .5)) +
+    ggplot(aes(x = factor(wave_fac), y = mean,
+               ymax = mean + ci_high, 
+               ymin = mean - ci_low)) +
         geom_pointrange() +
-        ggrepel::geom_text_repel(aes(label = round(mean, 2) - .5)) +
+        ggrepel::geom_text_repel(aes(label = round(mean, 2))) +
         facet_wrap(~variable) +
         labs(title = "Changes in discrimination perception",
             x = "Wave", y = "Average response") +
