@@ -61,6 +61,27 @@ recode_dummy <- function(df) {
 
 }
 
+# Replace NA with 0
+
+replacena0 <- function(x) {
+    x[which(is.na(x))] <- 0
+    return(x)
+}
+
+# Normalize data
+rescale01 <- function(x) {
+    x <- scales::rescale(x, to = c(0, 1))
+    return(x)
+}
+
+# Reverse code
+reverse <- function(x) {
+
+    out <- (max(x, na.rm = T) + 1) - x
+
+    return(out)
+}
+
 ## for bootstrapping 95% confidence intervals; Borrowed from Nick Camp's code from Jaren, Nick, and my shared project
 
 theta <- function(x, xdata, na.rm = T) {
@@ -75,14 +96,28 @@ ci.high <- function(x, na.rm = T) {
     quantile(bootstrap::bootstrap(1:length(x), 1000, theta, x, na.rm = na.rm)$thetastar, .975, na.rm = na.rm) - mean(x, na.rm = na.rm)
 }
 
+interpret_estimate <- function(model){
+
+    # Control
+    intercept <- model$estimate[model$term == "(Intercept)"]
+    control <- exp(intercept) / (1 + exp(intercept))
+
+    # Likelihood
+    model <- model %>% filter(term != "(Intercept)")
+
+    model$likelihood <- (exp(model$estimate) / (1 - control + (control * exp(model$estimate))))
+
+    return(model)
+}
+
 # Calculate group mean
 
 group_mean <- function(x){
     out <- df %>%
-        group_by(wave) %>%
-        summarise(mean = mean(get(disc.list[x]), na.rm = TRUE),
-                  ci_high = ci.high(get(disc.list[x])),
-                  ci_low = ci.low(get(disc.list[x])))
+        group_by(wave_fac) %>%
+        summarise(mean = mean(get(var.list[x]), na.rm = TRUE),
+                  ci_high = ci.high(get(var.list[x])),
+                  ci_low = ci.low(get(var.list[x])))
 
     return(out)
 }

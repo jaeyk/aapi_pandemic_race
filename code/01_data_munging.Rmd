@@ -239,6 +239,10 @@ dim(completed_df)
 write.csv(completed_df, here("processed_data/panel_data.csv"))
 ```
 
+```{r}
+completed_df <- read.csv(here("processed_data/panel_data.csv"))
+```
+
 # Munging
 
 Make a copy 
@@ -265,15 +269,33 @@ df23$party.id <- recode_party_w23(df23$party.id)
 
 df <- bind_rows(df1, df23)
 
-# Create dummy variables: gender, usborn
-c(df$gender, df$usborn) %<-% map(list(df$gender, df$usborn), recode_dummy)
-
 # Check 
 unique(df$party.id) %in% c("Republican", "Independent", "Democrat", NA) == TRUE
+
+# Create dummy variables: gender, usborn
+c(df$male, df$usborn) %<-% map(list(df$gender, df$usborn), recode_dummy)
+
+df$all_asian_disc <- if_else(df$apa.discrim.who == 2, 1, 0)
+
+# Education
+df$edu <- rep(subset(df, wave == 1)$edu, 3)
+
+df$state <- rep(subset(df, wave == 1)$state, 3)
+  
+df$yearborn <- as.numeric(rep(subset(df, wave == 1)$yearborn, 3))
+
+df$age <- 2021 - df$yearborn
+
+df$biden <- if_else(df$X2020likelycand == 1, 1, 0)
+
+# Create an index variable
+c(df$rona.behav.sneeze, df$rona.behav.language, df$rona.behav.walk, df$rona.behav.transit, df$rona.behav.other, df$rona.behav.nochange) %<-% map(list(df$rona.behav.sneeze, df$rona.behav.language, df$rona.behav.walk, df$rona.behav.transit, df$rona.behav.other, df$rona.behav.nochange), replacena0)
+
+df$rona.index <- (df$rona.behav.sneeze + df$rona.behav.language + df$rona.behav.walk + df$rona.behav.transit + df$rona.behav.other)/5
 ```
 
 # Export data 
 
 ```{r}
-write_csv(df, here("processed_data", "panel_data_cleaned.csv"))
+write.csv(df, here("processed_data", "panel_data_cleaned.csv"))
 ```
