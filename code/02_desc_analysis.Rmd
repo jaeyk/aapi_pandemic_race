@@ -236,9 +236,10 @@ plot_w123 %>%
         labs(x = "Response to general discrimination Q in Wave 1", 
              y = "Average response to COVID-19 discrimination Q in Wave 2 and 3",
              col = "Wave") +
-        geom_hline(yintercept = 0,  linetype = 'dotted', col = 'red', size = 1)
+        geom_hline(yintercept = 0,  linetype = 'dotted', col = 'red', size = 1) +
+        coord_flip()
 
-ggsave(here("outputs", "disc.wave.png"), height = 10)
+ggsave(here("outputs", "disc.wave.png"))
 ```
 
 # Regression analysis
