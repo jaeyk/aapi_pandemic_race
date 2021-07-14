@@ -13,12 +13,9 @@ output:
 if (!require(pacman)) install.packages("pacman")
 
 pacman::p_load(tidyverse, # tidyverse 
-               panelr, # panel data analysis
                here, # computational reproducibility 
                glue, # gluing objects and strings 
                tidylog, # logging analysis
-               naniar, # missing data 
-               zeallot, # multiple assignments 
                readxl)
 
 source(here("functions/utils.r"))
@@ -43,9 +40,6 @@ codebook <- read_csv(here("raw_data/codebook_alt.csv"))
 ncol(w1) == nrow(subset(codebook, wave == "w1"))
 ncol(w2) == nrow(subset(codebook, wave == "w2"))
 ncol(w3) == nrow(subset(codebook, wave == "w3"))
-
-codebook %>%
-  filter(str_detect(alt_name, "gen"))
 ```
 
 ```{r}
@@ -209,6 +203,9 @@ w1$respondent.id <- NULL
 ```
 
 ```{r}
+w2$pid <- w1$pid
+w3$pid <- w1$pid
+
 binded_df <- bind_rows(w1, w2, w3)
 
 glue("The total # of participatns in each wave in the panel data: {nrow(binded_df)/3}")
@@ -221,7 +218,7 @@ subset(binded_df, wave == 1)$gendiscrim[1:5]
 
 ```{r}
 completed_df <- binded_df %>%
-  dplyr::select(!matches("response|respondent|pid"))
+  dplyr::select(!matches("response|respondent"))
 
 # Fill in missing values using the previous wave information
 
@@ -236,7 +233,7 @@ completed_df <- fill(completed_df, usborn)
 
 
 ```{r}
-# 1992 obs and 105 variables 
+# 1992 obs and 106 variables 
 dim(completed_df)
 
 write.csv(completed_df, here("processed_data/panel_data.csv"))

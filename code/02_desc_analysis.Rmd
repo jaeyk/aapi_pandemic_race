@@ -21,7 +21,11 @@ pacman::p_load(tidyverse, # tidyverse
                zeallot, # multiple assignments 
                readxl, 
                ggpubr, 
-               broom)
+               broom, 
+               patchwork, 
+               plm, 
+               broom.mixed, 
+               estimatr)
 
 # for publication-friendly theme 
 theme_set(theme_pubr())
@@ -35,7 +39,9 @@ source(here("functions/utils.r"))
 df <- read_csv(here("processed_data", "panel_data_cleaned.csv"))
 ```
 
-# Summarize by group
+# Summarize by group 
+
+## Table 1 and 2
 
 ```{r}
 disc.list <- names(df)[str_detect(names(df), "disc")][-5]
@@ -46,13 +52,17 @@ group_sum <- purrr::map_dfr(seq(disc.list), group_mean) %>%
 
 group_sum %>%
     filter(str_detect(variable, "rona|gendi")) %>%
-    ggplot(aes(x = wave, y = mean,
+    mutate(variable = recode(variable, 
+                             "apa.discrim.rona" = "COVID-19 discrimination",
+                             "gendiscrim" = 
+                                 "General discrimination")) %>%
+    ggplot(aes(x = factor(wave), y = mean,
                ymax = mean + ci_high, 
                ymin = mean - ci_low)) +
         geom_pointrange() +
         ggrepel::geom_text_repel(aes(label = round(mean, 2))) +
         facet_wrap(~variable) +
-        labs(title = "General vs. COVID-specific discrimination perception",
+        labs(title = "COVID-specific vs. general discrimination perception",
             x = "Wave", y = "Average response")
 
 ggsave(here("outputs", "disc.perception.png"))
@@ -62,3 +72,115 @@ t_test_result <- broom::tidy(t.test(subset(df, wave == 2)$apa.discrim.rona,
 
 t_test_result
 ``` 
+
+## Table 3
+
+```{r}
+df$proxy <- rep(subset(df, wave == 1)$gendiscrim, 3)
+
+plot_w12 <- df %>%
+    filter(wave %in% c(1,2)) %>%
+    group_by(proxy) %>%
+    summarise(mean = mean(apa.discrim.rona, na.rm = TRUE),
+                  ci_high = ci.high(apa.discrim.rona),
+                  ci_low = ci.low(apa.discrim.rona)) %>%
+    mutate(group = 2)
+
+plot_w13 <- df %>%
+    filter(wave %in% c(1,3)) %>%
+    group_by(proxy) %>%
+    summarise(mean = mean(apa.discrim.rona, na.rm = TRUE),
+                  ci_high = ci.high(apa.discrim.rona),
+                  ci_low = ci.low(apa.discrim.rona)) %>%
+    mutate(group = 3)
+
+plot_w123 <- bind_rows(plot_w12, plot_w13)
+
+plot_w123 %>%
+    ggplot(aes(x = factor(proxy), y = mean,
+               ymax = mean + ci_high, 
+               ymin = mean - ci_low, 
+               col = factor(group))) +
+        geom_pointrange() +
+        ggrepel::geom_text_repel(aes(label = round(mean, 2))) +
+        coord_flip() +
+        labs(x = "Response to general discrimination Q in Wave 1", 
+             y = "Average response to COVID-19 discrimination Q in Wave 2 and 3",
+             col = "Wave") 
+
+ggsave(here("outputs", "disc.wave.png"))
+```
+
+# First difference modeling
+
+*Tasks*
+
+- [ ] Normalize all variables 
+
+*Key points**
+
+1. Pooled OLS
+
+In the below cases, the time invariant unobserved 
+2. Random effects 
+3. Mixed effects
+
+```{r}
+df$citizen <- rep(subset(df, wave == 1)$citizen, 3)
+
+lm.out <- lm(apa.discrim.rona ~ gendiscrim + factor(race) + factor(gender) + factor(citizen) + factor(party.id), data = df)
+
+lm.robust.out <- estimatr::lm_robust(apa.discrim.rona ~ gendiscrim + factor(race) + factor(gender) + factor(citizen) + factor(party.id), data = df)
+
+panel_df <- pdata.frame(df, index = c("pid","wave"), drop.index = TRUE, row.names = TRUE)
+
+fd.out <- plm(apa.discrim.rona ~ gendiscrim + factor(race) + factor(gender) + factor(citizen) + factor(party.id), data = panel_df, model = "fd")
+
+lme.out <- lmer(apa.discrim.rona ~ gendiscrim  + factor(race) + factor(gender) + factor(citizen) + factor(party.id) + wave + (1|pid), data = df)
+
+model.outs <- bind_rows(
+tidy(lm.out, conf.int = TRUE) %>%
+  mutate(model = "OLS"),
+
+tidy(lm.robust.out) %>%
+  mutate(model = "Robust SE"),
+
+tidy(fd.out, conf.int = TRUE) %>%
+  mutate(model = "FD"),
+
+broom.mixed::tidy(lme.out, conf.int = TRUE) %>% 
+  mutate(model = "Mixed") %>%
+  dplyr::select(!matches("effect|group")))
+
+model.outs %>%
+  filter(!str_detect(term, "(Intercept)|sd")) %>%
+  ggplot(aes(x = term, y = estimate, 
+             ymax = conf.high, 
+             ymin = conf.low)) +
+    geom_pointrange() +
+    coord_flip() +
+    facet_wrap(~factor(model)) +
+    geom_hline(aes(yintercept = 0))
+```
+
+# Regression analysis
+
+## Likely to vote 
+
+```{r}
+lme.out <- lmer(`2020likelyvote` ~ apa.discrim.rona + gendiscrim + factor(race) + factor(gender) + factor(citizen) + factor(party.id) + wave + (1|pid), data = df)
+
+model.outs <- broom.mixed::tidy(lme.out, conf.int = TRUE) %>% 
+  mutate(model = "Mixed") %>%
+  dplyr::select(!matches("effect|group"))
+
+model.outs %>%
+  filter(!str_detect(term, "(Intercept)|sd")) %>%
+  ggplot(aes(x = term, y = estimate, 
+             ymax = conf.high, 
+             ymin = conf.low)) +
+    geom_pointrange() +
+    coord_flip() +
+    facet_wrap(~factor(model)) +
+    geom_hline(aes(yintercept = 0))
+```
