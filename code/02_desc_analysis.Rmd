@@ -55,7 +55,7 @@ df$usborn <- factor(df$usborn)
 df$male <- factor(df$male)
 df$party.id <- factor(df$party.id)
 df$state <- factor(df$state)
-df$biden <- factor(df$biden)
+df$biden <- if_else(!is.na(df$X2020likelycand) & df$X2020likelycand == 1, 1, 0)
 
 subset(df, wave == 2)$gendiscrim[1:5]
 subset(df, wave == 2)$X2020likelyvote[1:5]
@@ -73,6 +73,18 @@ df$wave_fac <- factor(df$wave_fac, levels = c("February", "May", "November"))
 # Check
 subset(df, wave == 2)$gendiscrim[1:5]
 subset(df, wave == 2)$X2020likelyvote[1:5]
+
+# Additional dummies 
+df$DEM <- if_else(df$party.id == "Democrat", 1, 0)
+df$DEM.strong <- if_else(df$party.id == "Democrat" & df$partystr == 1, 1, 0)
+
+df$GOP <- if_else(df$party.id == "Republican", 1, 0)
+df$GOP.strong <- if_else(df$party.id == "Republican" & df$partystr == 1, 1, 0)
+
+df$male <- rep(subset(df, wave == 1)$male, 3)
+df$usborn <- rep(subset(df, wave == 1)$usborn, 3)
+
+write.csv(df, here("processed_data", "panel_data_munged.csv"))
 ```
 
 # Summarize by group 
@@ -83,10 +95,10 @@ subset(df, wave == 2)$X2020likelyvote[1:5]
 var.list <- NULL
 var.list <- names(df)[str_detect(names(df), "disc")][c(1, 3)]
 
-var.list <- c(var.list, c("linkedfate", "idimport", "asnpride", "rona.behav.sneeze", "rona.behav.language", "rona.behav.walk", "rona.behav.transit", "rona.behav.other", "rona.behav.nochange", "rona.index", "X2020likelyvote", "biden"))
+var.list <- c(var.list, c("linkedfate", "idimport", "asnpride", "rona.behav.sneeze", "rona.behav.language", "rona.behav.walk", "rona.behav.transit", "rona.behav.other", "rona.behav.nochange", "rona.index", "X2020likelyvote", "biden", "DEM", "DEM.strong", "GOP", "GOP.strong"))
 ```
 
-```{r}
+```{r message = FALSE}
 group_sum <- purrr::map_dfr(seq(var.list), group_mean) %>%
     mutate(variable = rep(var.list, each = 3)) %>%
     filter(!is.na(mean)) 
@@ -107,7 +119,7 @@ group_sum %>%
         facet_wrap(~variable) +
         labs(title = "Changes in discrimination perception",
             x = "Wave", y = "Average response") +
-        geom_hline(yintercept = 0,  linetype = 'dotted', col = 'red', size = 1)
+        geom_hline(yintercept = 0.5,  linetype = 'dotted', col = 'red', size = 1)
 
 ggsave(here("outputs", "disc.perception.png"))
 ```
@@ -138,21 +150,21 @@ ggsave(here("outputs", "density.png"), width = 10)
 
 ```{r}
 group_sum %>%
-    filter(!str_detect(variable, "disc|rona|2020|biden")) %>%
+    filter(!str_detect(variable, "disc|rona|2020|biden|DEM|GOP")) %>%
     mutate(variable = recode(variable, 
                              "asnpride" = "Proud to be Asian",
                              "linkedfate" = 
                              "Linked fate",
                              "idimport" = "Asian identity important")) %>%
-    ggplot(aes(x = factor(wave_fac), y = mean - 0.5,
-               ymax = mean + ci_high - 0.5, 
-               ymin = mean - ci_low - 0.5)) +
+    ggplot(aes(x = factor(wave_fac), y = mean ,
+               ymax = mean + ci_high, 
+               ymin = mean - ci_low)) +
         geom_pointrange() +
-        ggrepel::geom_text_repel(aes(label = round(mean, 2) - .5)) +
+        ggrepel::geom_text_repel(aes(label = round(mean, 2))) +
         facet_wrap(~variable) +
         labs(title = "Changes in group identity and consciousness",
             x = "Wave", y = "Average response") +
-        geom_hline(yintercept = 0,  linetype = 'dotted', col = 'red', size = 1)
+        geom_hline(yintercept = 0.5,  linetype = 'dotted', col = 'red', size = 1)
 
 ggsave(here("outputs", "solidarity.perception.png"))
 ```
@@ -161,7 +173,7 @@ ggsave(here("outputs", "solidarity.perception.png"))
 group_sum %>%
     filter(wave_fac == "May") %>% 
     filter(str_detect(variable, "rona")) %>%
-    filter(!str_detect(variable, "apa|nochange|2020|biden")) %>%
+    filter(!str_detect(variable, "apa|nochange|2020|biden|DEM|GOP")) %>%
     mutate(variable = recode(variable, 
                              "rona.behav.sneeze" = "Avoid coughing/sneezing",
                              "rona.behav.language" = 
@@ -184,8 +196,9 @@ ggsave(here("outputs", "rona_behave.png"), width = 10)
 ```
 
 ```{r}
-group_sum %>%
+pol_bev_plot <- group_sum %>%
     filter(str_detect(variable, "2020|biden")) %>%
+    filter(wave_fac != "February") %>%
     mutate(variable = recode(variable, 
                              "biden" = "Supporting Biden candidacy",
                              "X2020likelyvote" = "Will vote in 2020 election")) %>%
@@ -193,12 +206,39 @@ group_sum %>%
                ymax = mean + ci_high, 
                ymin = mean - ci_low)) +
         geom_pointrange() +
-        ggrepel::geom_text_repel(aes(label = round(mean, 2))) +
+        ggrepel::geom_text_repel(aes(label = paste(round(mean, 2)*100, "%"))) +
+        scale_y_continuous(labels = scales::percent) +
         facet_wrap(~variable) +
         labs(title = "Changes in political preferences",
-            x = "Wave", y = "Average response")
+            x = "Wave", y = "Percentage") 
 
+pol_bev_plot
 ggsave(here("outputs", "political_outcome.png"))
+```
+
+```{r}
+pid_plot <- group_sum %>%
+    filter(str_detect(variable, "GOP|DEM")) %>%
+    filter(!str_detect(variable, "strong")) %>%
+    mutate(variable = recode(variable, 
+                             "biden" = "Supporting Biden candidacy",
+                             "X2020likelyvote" = "Will vote in 2020 election")) %>%
+    ggplot(aes(x = factor(wave_fac), y = mean,
+               ymax = mean + ci_high, 
+               ymin = mean - ci_low)) +
+        geom_pointrange() +
+        ggrepel::geom_text_repel(aes(label = paste(round(mean, 2)*100, "%"))) +
+        scale_y_continuous(labels = scales::percent) +
+        facet_wrap(~variable) +
+        labs(title = "Changes in party identification",
+            x = "Wave", y = "Percentage")
+
+pid_plot
+ggsave(here("outputs", "pid.png"))
+
+pol_bev_plot + pid_plot
+
+ggsave(here("outputs", "pol_bev.png"), width = 10)
 ```
 
 ## Table 3
@@ -227,19 +267,18 @@ plot_w123 <- bind_rows(plot_w12, plot_w13)
 
 ```{r}
 plot_w123 %>%
-    ggplot(aes(x = factor(proxy), y = mean -.5,
-               ymax = mean + ci_high - .5, 
-               ymin = mean - ci_low - .5, 
+    ggplot(aes(x = factor(proxy), y = mean,
+               ymax = mean + ci_high, 
+               ymin = mean - ci_low, 
                col = factor(group))) +
         geom_pointrange() +
-        ggrepel::geom_text_repel(aes(label = round(mean, 2) - .5)) +
+        ggrepel::geom_text_repel(aes(label = round(mean, 2))) +
         labs(x = "Response to general discrimination Q in Wave 1", 
              y = "Average response to COVID-19 discrimination Q in Wave 2 and 3",
              col = "Wave") +
-        geom_hline(yintercept = 0,  linetype = 'dotted', col = 'red', size = 1) +
-        coord_flip()
+        geom_hline(yintercept = 0.5,  linetype = 'dotted', col = 'red', size = 1) 
 
-ggsave(here("outputs", "disc.wave.png"))
+ggsave(here("outputs", "disc.wave.png"), height = 9, width = 9)
 ```
 
 # Regression analysis
@@ -247,17 +286,14 @@ ggsave(here("outputs", "disc.wave.png"))
 ## Likely to vote 
 
 ```{r}
-df$DEM <- if_else(df$party.id == "Democrat", 1, 0)
-df$GOP <- if_else(df$party.id == "Republican", 1, 0)
+lm.out <- lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + apa.discrim.rona:linkedfate + usborn + DEM + GOP + male + edu + factor(wave), data = df)
 
-lm.out <- lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + male + edu + factor(wave), data = df)
+lm.robust.out <- estimatr::lm_robust(X2020likelyvote ~ gendiscrim + apa.discrim.rona + apa.discrim.rona:linkedfate + usborn + DEM + GOP + male + edu + factor(wave), data = df)
 
-lm.robust.out <- estimatr::lm_robust(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + male + edu + factor(wave), data = df)
+plm.out <- plm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + apa.discrim.rona:linkedfate + DEM + GOP + male + edu + factor(wave), data = df,
+               model = "fd", index = c("pid", "wave"))
 
-plm.out <- plm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + male + edu + factor(wave), data = df, effect = "time",
-               model = "within", index = c("pid", "wave"))
-
-lme.out <- lmer(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + male + edu + factor(wave) + (1|pid), data = df)
+lme.out <- lmer(X2020likelyvote ~ gendiscrim + apa.discrim.rona + apa.discrim.rona:linkedfate + usborn + DEM + GOP + male + edu + factor(wave) + (1|pid), data = df)
 
 model.outs <- broom.mixed::tidy(lme.out, conf.int = TRUE) %>% 
   mutate(model = "Mixed") %>%
@@ -265,13 +301,13 @@ model.outs <- broom.mixed::tidy(lme.out, conf.int = TRUE) %>%
 
 model.outs <- bind_rows(
 tidy(lm.out, conf.int = TRUE) %>%
-  mutate(model = "OLS"),
+  mutate(model = "Within estimator"),
 
 tidy(lm.robust.out, conf.int = TRUE) %>%
-  mutate(model = "OLS with robust SE"),
+  mutate(model = "Robust SE"),
 
 tidy(plm.out, conf.int = TRUE) %>%
-  mutate(model = "Within estimator"),
+  mutate(model = "FD estimator"),
 
 broom.mixed::tidy(lme.out, conf.int = TRUE) %>% 
   mutate(model = "Mixed model") %>%
@@ -289,8 +325,8 @@ model.outs %>%
                        "edu" = "Education",
                        "factor(wave)3" = "Wave 3",
                        "GOP" = "Republican",
-                       "DEM" = "Democrat"
-                       )) %>%
+                       "DEM" = "Democrat",
+                       "linkedfate:apa.discrim.rona" = "COVID discrimination:Linked fate")) %>%
   ggplot(aes(x = term, y = estimate, 
              ymax = conf.high, 
              ymin = conf.low)) +
@@ -300,15 +336,17 @@ model.outs %>%
     geom_hline(yintercept = 0, linetype = "dotted", color = "red", size = 1)  +
     labs(y = "Estimate",
          x = "",
-         title = "Likely to vote in 2020 election")
+         title = "Likely to vote in 2020 election") +
+    ggrepel::geom_text_repel(aes(label = round(estimate, 2)))
 
-ggsave(here("outputs", "vote2020.png"))
+ggsave(here("outputs", "vote2020.png"), width = 10, 
+       height = 10)
 ```
 
 ## Biden candidacy
 
 ```{r}
-glm.out <- glm(biden ~ gendiscrim + apa.discrim.rona + usborn + GOP + DEM + male + edu + factor(wave), data = df, family = "binomial")
+glm.out <- glm(biden ~ gendiscrim + apa.discrim.rona + apa.discrim.rona:linkedfate + usborn + GOP + DEM + male + edu + factor(wave), data = df, family = "binomial")
 
 tidy(glm.out, conf.int = TRUE) %>%
   interpret_estimate() %>%
@@ -320,8 +358,8 @@ tidy(glm.out, conf.int = TRUE) %>%
                        "edu" = "Education",
                        "factor(wave)3" = "Wave 3",
                        "GOP" = "Republican",
-                       "DEM" = "Democrat"
-                       )) %>%
+                       "DEM" = "Democrat",
+                       "apa.discrim.rona:linkedfate" = "COVID discrimination:Linked fate")) %>%
   filter(!str_detect(term, "(Intercept)")) %>%
   ggplot(aes(x = term, y = estimate, 
              ymax = conf.high, 
@@ -334,5 +372,5 @@ tidy(glm.out, conf.int = TRUE) %>%
          x = "",
          title = "Suppporting Democratic Presidential candidate")
 
-ggsave(here("outputs", "biden.png"))
+ggsave(here("outputs", "biden.png"), width = 8, height = 8)
 ```
