@@ -121,3 +121,56 @@ group_mean <- function(x){
 
     return(out)
 }
+
+# Calculate model outputs
+
+cal_model_outputs <- function(x) {
+
+    lm.out <- lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + male + edu + factor(wave), data = x)
+
+    lm.robust.out <- estimatr::lm_robust(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + male + edu + factor(wave), data = x)
+
+    plm.out <- plm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + male + edu + factor(wave), data = x,
+                   model = "fd", index = c("pid", "wave"))
+
+    lme.out <- lmer(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + male + edu + factor(wave) + (1|pid), data = x)
+
+    out <- broom.mixed::tidy(lme.out, conf.int = TRUE) %>%
+        mutate(model = "Mixed") %>%
+        dplyr::select(!matches("effect|group"))
+
+    model.outs <- bind_rows(
+        tidy(lm.out, conf.int = TRUE) %>%
+            mutate(model = "Within estimator"),
+
+        tidy(lm.robust.out, conf.int = TRUE) %>%
+            mutate(model = "Robust SE"),
+
+        tidy(plm.out, conf.int = TRUE) %>%
+            mutate(model = "FD estimator"),
+
+        broom.mixed::tidy(lme.out, conf.int = TRUE) %>%
+            mutate(model = "Mixed model") %>%
+            dplyr::select(!matches("effect|group"))
+    )
+
+    return(out)
+}
+
+cal_glm <- function(x) {
+
+    glm.out <- glm(biden ~ gendiscrim + apa.discrim.rona + usborn + GOP + DEM + male + edu + factor(wave), data = x, family = "binomial")
+
+    tidy(glm.out, conf.int = TRUE) %>%
+        interpret_estimate() %>%
+        mutate(term = recode(term,
+                             "usborn1" = "Born in US",
+                             "male1" = "Male",
+                             "gendiscrim" = "General discrimination",
+                             "apa.discrim.rona" = "COVID discrimination",
+                             "edu" = "Education",
+                             "factor(wave)3" = "Wave 3",
+                             "GOP" = "Republican",
+                             "DEM" = "Democrat",
+                             "apa.discrim.rona:linkedfate" = "COVID discrimination:Linked fate"))
+}
