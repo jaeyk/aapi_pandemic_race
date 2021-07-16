@@ -122,18 +122,23 @@ group_mean <- function(x){
     return(out)
 }
 
+# tidy t-test
+
+tidy_test <- function(x) {
+tidy(t.test(subset(df, prior == 1) %>% pull({{x}}), subset(df, prior == 0) %>% pull({{x}})))
+}
 # Calculate model outputs
 
 cal_model_outputs <- function(x) {
 
-    lm.out <- lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + male + edu + factor(wave), data = x)
+    lm.out <- lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + age + male + edu + factor(wave), data = x)
 
-    lm.robust.out <- estimatr::lm_robust(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + male + edu + factor(wave), data = x)
+    lm.robust.out <- estimatr::lm_robust(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + age + male + edu + factor(wave), data = x)
 
-    plm.out <- plm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + male + edu + factor(wave), data = x,
+    plm.out <- plm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + age + male + edu + factor(wave), data = x,
                    model = "fd", index = c("pid", "wave"))
 
-    lme.out <- lmer(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + male + edu + factor(wave) + (1|pid), data = x)
+    lme.out <- lmer(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + age + male + edu + factor(wave) + (1|pid), data = x)
 
     out <- broom.mixed::tidy(lme.out, conf.int = TRUE) %>%
         mutate(model = "Mixed") %>%
@@ -159,13 +164,14 @@ cal_model_outputs <- function(x) {
 
 cal_glm <- function(x) {
 
-    glm.out <- glm(biden ~ gendiscrim + apa.discrim.rona + usborn + GOP + DEM + male + edu + factor(wave), data = x, family = "binomial")
+    glm.out <- glm(biden ~ gendiscrim + apa.discrim.rona + usborn + GOP + DEM + age + male + edu + factor(wave), data = x, family = "binomial")
 
     tidy(glm.out, conf.int = TRUE) %>%
         interpret_estimate() %>%
         mutate(term = recode(term,
-                             "usborn1" = "Born in US",
-                             "male1" = "Male",
+                             "age" = "Age",
+                             "usborn" = "Born in US",
+                             "male" = "Male",
                              "gendiscrim" = "General discrimination",
                              "apa.discrim.rona" = "COVID discrimination",
                              "edu" = "Education",

@@ -89,26 +89,6 @@ w2 <- w2_copy
 w3 <- w3_copy
 ```
 
-```{r}
-# Check
-unique(w1$party.id)
-# 1 == Independent 
-# 2 == Democrat 
-# 3 == Republican
-unique(w2$party.id) 
-# 1 == Republican 
-# 2 == Independent 
-# 3 == Democrat 
-# 4 == Some other party
-# 5 == I don't know 
-unique(w3$party.id)
-# 1 == Republican 
-# 2 == Independent 
-# 3 == Democrat 
-# 4 == Some other party
-# 5 == I don't know 
-```
-
 ## Add an wave identifier 
 
 ```{r}
@@ -251,10 +231,12 @@ Make a copy
 df <- completed_df
 ```
 
-## Replace 9999 with NA
+## Replace with NA
 
 ```{r}
 df <- na_if(df, 9999)
+
+df$ronaunfairasian <- na_if(df$ronaunfairasian, 4)
 ```
 
 ## Recode values 
@@ -285,13 +267,65 @@ df$state <- rep(subset(df, wave == 1)$state, 3)
 df$yearborn <- as.numeric(rep(subset(df, wave == 1)$yearborn, 3))
 
 df$age <- 2021 - df$yearborn
+df$age <- ifelse(df$age > 0 & df$age < 100, df$age, NA)
+```
 
+```{r}
 df$biden <- if_else(df$X2020likelycand == 1, 1, 0)
 
 # Create an index variable
 c(df$rona.behav.sneeze, df$rona.behav.language, df$rona.behav.walk, df$rona.behav.transit, df$rona.behav.other, df$rona.behav.nochange) %<-% map(list(df$rona.behav.sneeze, df$rona.behav.language, df$rona.behav.walk, df$rona.behav.transit, df$rona.behav.other, df$rona.behav.nochange), replacena0)
 
 df$rona.index <- (df$rona.behav.sneeze + df$rona.behav.language + df$rona.behav.walk + df$rona.behav.transit + df$rona.behav.other)/5
+```
+
+
+# Extra munging
+
+```{r}
+# Reverse code 
+c(df$apa.discrim.rona, df$gendiscrim, df$linkedfate, df$trump.approve, df$trump.approve, df$apa.responsible, df$apa.have.rona, df$apa.harassment, df$idimport, df$asnpride, df$X2020likelyvote, df$ronaunfairasian) %<-% map(list(df$apa.discrim.rona, df$gendiscrim, df$linkedfate, df$trump.approve, df$trump.approve, df$apa.responsible, df$apa.have.rona, df$apa.harassment, df$idimport, df$asnpride, df$X2020likelyvote, df$ronaunfairasian), reverse)
+
+# Normalize 
+c(df$apa.discrim.rona, df$gendiscrim, df$linkedfate, df$trump.approve, df$age, df$edu, df$apa.responsible, df$apa.have.rona, df$apa.harassment, df$idimport, df$asnpride, df$X2020likelyvote, df$ronaunfairasian) %<-% map(list(df$apa.discrim.rona, df$gendiscrim, df$linkedfate, df$trump.approve, df$age, df$edu, df$apa.responsible, df$apa.have.rona, df$apa.harassment, df$idimport, df$asnpride, df$X2020likelyvote, df$ronaunfairasian), rescale01)
+
+# Factorize (categorical variables)
+df$natorigin <- factor(df$natorigin)
+df$usborn <- factor(df$usborn)
+df$male <- factor(df$male)
+df$party.id <- factor(df$party.id)
+df$state <- factor(df$state)
+
+subset(df, wave == 2)$gendiscrim[1:5]
+subset(df, wave == 2)$X2020likelyvote[1:5]
+```
+
+```{r}
+# Add factor version wave variable
+df$wave_fac <- recode(as.character(df$wave), 
+                  "1" = "February",
+       "2" = "May",
+       "3" = "November") 
+
+df$wave_fac <- factor(df$wave_fac, levels = c("February", "May", "November"))
+
+# Check
+subset(df, wave == 2)$gendiscrim[1:5]
+subset(df, wave == 2)$X2020likelyvote[1:5]
+
+# Additional dummies 
+df$DEM <- if_else(df$party.id == "Democrat", 1, 0)
+df$DEM.strong <- if_else(df$party.id == "Democrat" & df$partystr == 1, 1, 0)
+
+df$GOP <- if_else(df$party.id == "Republican", 1, 0)
+df$GOP.strong <- if_else(df$party.id == "Republican" & df$partystr == 1, 1, 0)
+
+df$male <- rep(subset(df, wave == 1)$male, 3)
+df$usborn <- rep(subset(df, wave == 1)$usborn, 3)
+
+df$biden <- if_else(df$X2020likelycand == 1, 1, 0)
+df$unfair <- if_else(df$ronaunfair == 1, 1, 0)
+df$unfair_others <- if_else(df$rona.apa.mistreat == 1, 1, 0)
 ```
 
 # Export data 
