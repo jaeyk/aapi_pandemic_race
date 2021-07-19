@@ -140,10 +140,6 @@ cal_model_outputs <- function(x) {
 
     lme.out <- lmer(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + age + male + edu + factor(wave) + (1|pid), data = x)
 
-    out <- broom.mixed::tidy(lme.out, conf.int = TRUE) %>%
-        mutate(model = "Mixed") %>%
-        dplyr::select(!matches("effect|group"))
-
     model.outs <- bind_rows(
         tidy(lm.out, conf.int = TRUE) %>%
             mutate(model = "Within estimator"),
@@ -159,7 +155,7 @@ cal_model_outputs <- function(x) {
             dplyr::select(!matches("effect|group"))
     )
 
-    return(out)
+    return(model.outs)
 }
 
 cal_glm <- function(x) {

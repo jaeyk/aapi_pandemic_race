@@ -27,7 +27,9 @@ pacman::p_load(tidyverse, # tidyverse
                broom.mixed, 
                estimatr, 
                stargazer,
-               DeclareDesign)
+               DeclareDesign,
+               sensemakr,
+               mice)
 
 # for publication-friendly theme 
 theme_set(theme_pubr())
@@ -118,7 +120,7 @@ group_sum %>%
             x = "Wave", y = "Average response") +
         geom_hline(yintercept = 0.5,  linetype = 'dotted', col = 'red', size = 1)
 
-ggsave(here("outputs", "solidarity.perception.png"))
+ggsave(here("outputs", "solidarity.perception.png"), width = 8)
 ```
 
 ```{r}
@@ -256,6 +258,44 @@ ggsave(here("outputs", "disc.wave.png"), height = 9, width = 9)
 
 # Regression analysis
 
+## Imputation
+
+```{r}
+df_na_sum <- df %>%
+  filter(wave != 1) %>%
+  select(gendiscrim, apa.discrim.rona, usborn, DEM, GOP, age, male, edu) %>%
+  map_dfr(~is.na(.) %>% sum() / 1328)
+```
+
+```{r}
+imp <- mice(
+  df %>%
+    filter(wave != 1) %>%
+    select(apa.discrim.rona, usborn, DEM, GOP, age, male, edu),
+    seed = 1234, # for reproducibility
+    m = 5, # the number of imputations
+    maxit = 10, # the max number of iterations 
+    method = "pmm", # predictive mean method
+    print = FALSE)
+
+densityplot(imp, layout = c(1,2))
+
+imputed <- mice::complete(imp)
+
+# Replace with the imputed values 
+df$apa.discrim.rona[665:nrow(df)] <- 
+imputed$apa.discrim.rona
+
+df$DEM[665:nrow(df)] <- 
+imputed$DEM
+
+df$GOP[665:nrow(df)] <- 
+imputed$GOP
+
+df$age[665:nrow(df)] <- 
+imputed$age
+```
+
 ## Likely to vote 
 
 ```{r}
@@ -278,7 +318,7 @@ two.group %>%
     labs(x = "",
          y = "Estimate")
   
-ggsave(here("outputs", "estimate.two.group.png"))
+ggsave(here("outputs", "estimate.two.group.png"), width = 8)
 
 two.group %>%
   ggplot(aes(x = variable, y = p.value)) +
@@ -287,7 +327,7 @@ two.group %>%
     labs(x = "",
          y = "P value")
   
-ggsave(here("outputs", "p.value.two.group.png"))
+ggsave(here("outputs", "p.value.two.group.png"), width = 8)
 
 ```
 
@@ -339,6 +379,7 @@ model_outs_binded <- bind_rows(mutate(model.outs.high, group = "High"),
           mutate(model.outs.low, group = "Low and middle")          )
 
 model_outs_binded %>%
+  filter(model == "Mixed model") %>%
   filter(!str_detect(term, "(Intercept)|sd")) %>%
   mutate(term = recode(term, 
                        "usborn" = "Born in US",
