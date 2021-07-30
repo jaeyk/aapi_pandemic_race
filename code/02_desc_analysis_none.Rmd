@@ -169,7 +169,61 @@ group_sum %>%
         facet_wrap(~variable) +
         scale_y_continuous(labels = ~paste0(., "%"))
 
-ggsave(here("outputs", "rona_fair.png"), width = 10)
+ggsave(here("outputs", "rona_fair.png"), width = 12)
+```
+
+```{r}
+summary(lm(df$apa.discrim.rona ~ df$unfair_others))
+```
+
+```{r}
+# Lost job 
+lost_job_pct <- sum(!is.na(df %>%
+  filter(wave == 2) %>% 
+  pull(lostjob)))/(df %>% filter(wave == 2) %>% nrow()) %>%
+  round(2)
+```
+
+5% participants in the wave 2 lost jobs. 
+
+```{r}
+income_reduction_pct <- sum(!is.na(df %>%
+  filter(wave == 2) %>% 
+  pull(incomereduc)))/(df %>% filter(wave == 2) %>% nrow()) %>%
+  round(2)
+
+income_reduction_pct
+```
+
+```{r}
+df$lostjob <- if_else(!is.na(df$lostjob), 1, 0)
+df$incomereduc <- if_else(!is.na(df$incomereduc), 1, 0)
+
+summary(lm(unfair ~ lostjob + incomereduc, data = subset(df, wave == 2)))
+
+summary(lm(unfair_others ~ lostjob + incomereduc, data = subset(df, wave == 2)))
+
+summary(lm(apa.discrim.rona ~ lostjob + incomereduc, data = subset(df, wave == 2)))
+```
+
+2% participants in the wave experienced income reduction.
+
+```{r}
+df$testrona <- if_else(df$testrona == 1, 1, 0)
+  
+test_rona_pct <- df %>%
+  filter(wave != 1) %>%
+  summarize(mean = mean(testrona, na.rm = T))
+
+test_rona_pct$mean
+```
+
+7% of participants tested positive 
+
+```{r}
+df %>%
+  group_by(wave) %>%
+  summarize(rona_pos = mean(testrona, na.rm = TRUE))
 ```
 
 ```{r}
@@ -218,6 +272,8 @@ pol_bev_plot + pid_plot
 ggsave(here("outputs", "pol_bev.png"), width = 10)
 ```
 
+## General and COVID-19 discrimination perception
+
 ```{r}
 df$proxy <- rep(subset(df, wave == 1)$gendiscrim, 3)
 
@@ -256,45 +312,68 @@ plot_w123 %>%
 ggsave(here("outputs", "disc.wave.png"), height = 9, width = 9)
 ```
 
-# Regression analysis
-
-## Imputation
-
 ```{r}
-df_na_sum <- df %>%
+exp_plot <- df %>%
   filter(wave != 1) %>%
-  select(gendiscrim, apa.discrim.rona, usborn, DEM, GOP, age, male, edu) %>%
-  map_dfr(~is.na(.) %>% sum() / 1328)
+  group_by(proxy, wave) %>%
+  summarize(mean = mean(unfair, na.rm = TRUE),
+            ci_high = ci.high(unfair, na.rm = TRUE),
+            ci_low = ci.low(unfair, na.rm = TRUE)) %>%
+  ggplot(aes(x = proxy, y = mean, col = factor(wave),
+             ymax = mean + ci_high,
+             ymin = mean - ci_low)) +
+    geom_pointrange() +
+    ylim(c(0, 1)) +
+    ggrepel::geom_text_repel(aes(label = round(mean, 2))) +
+    labs(x = "Response to general discrimination Q in Wave 1", 
+         y = "Average response",
+         col = "Wave",
+         title = "Experiencing COVID-19 discrimination")
+
+wit_plot <- df %>%
+  filter(wave != 1) %>%
+  group_by(proxy, wave) %>%
+  summarize(mean = mean(unfair_others, na.rm = TRUE),
+            ci_high  = ci.high(unfair_others, na.rm = TRUE),
+            ci_low = ci.low(unfair_others, na.rm = TRUE)) %>%
+  ggplot(aes(x = proxy, y = mean, col = factor(wave),
+             ymax = mean + ci_high,
+             ymin = mean - ci_low)) +
+    geom_pointrange() +
+    ylim(c(0, 1)) +
+    ggrepel::geom_text_repel(aes(label = round(mean, 2))) +
+    labs(x = "Response to general discrimination Q in Wave 1", 
+         y = "Average response",
+         col = "Wave",
+         title = "Witnessing COVID-19 discrimination")
+
+exp_plot /
+wit_plot
+
+ggsave(here("outputs", "disc_exp_wit.png"), height = 12, width = 9)
 ```
+
+## General discrimination perception and partisanship 
 
 ```{r}
-imp <- mice(
-  df %>%
-    filter(wave != 1) %>%
-    select(apa.discrim.rona, usborn, DEM, GOP, age, male, edu),
-    seed = 1234, # for reproducibility
-    m = 5, # the number of imputations
-    maxit = 10, # the max number of iterations 
-    method = "pmm", # predictive mean method
-    print = FALSE)
+df %>%
+  filter(!is.na(party.id)) %>%
+  group_by(party.id) %>%
+  summarise(mean = mean(gendiscrim, na.rm = TRUE),
+            ci_high = ci.high(gendiscrim, na.rm = TRUE),
+            ci_low = ci.low(gendiscrim, na.rm = TRUE)) %>%
+  ggplot(aes(x = party.id, y = mean, 
+             ymax = mean + ci_high, 
+             ymin = mean - ci_low)) +
+  geom_pointrange() +
+  ggrepel::geom_text_repel(aes(label = round(mean, 2))) +
+  labs(y = "Average response",
+       x = "Party ID")
 
-densityplot(imp, layout = c(1,2))
-
-imputed <- mice::complete(imp)
-
-# Replace with the imputed values 
-df$apa.discrim.rona[665:nrow(df)] <- 
-imputed$apa.discrim.rona
-
-df$DEM[665:nrow(df)] <- 
-imputed$DEM
-
-df$GOP[665:nrow(df)] <- 
-imputed$GOP
-
-df$age[665:nrow(df)] <- 
-imputed$age
+ggsave(here("outputs", "gen_disc_party_id.png"))
 ```
+
+# Regression analysis
 
 ## Likely to vote 
 
