@@ -16,7 +16,8 @@ pacman::p_load(tidyverse, # tidyverse
                here, # computational reproducibility 
                glue, # gluing objects and strings 
                tidylog, # logging analysis
-               readxl)
+               readxl, 
+               zeallot)
 
 source(here("functions/utils.r"))
 ```
@@ -253,7 +254,25 @@ df <- bind_rows(df1, df23)
 
 # Check 
 unique(df$party.id) %in% c("Republican", "Independent", "Democrat", NA) == TRUE
+```
 
+```{r}
+df12 <- subset(df, wave != 3)
+df3 <- subset(df, wave == 3)
+
+# Affect 
+df12$whiteaffect <- recode_affect_w12(df12$whiteaffect)
+
+df12$blackaffect <- recode_affect_w12(df12$blackaffect)
+
+df12$latinoaffect <- recode_affect_w12(df12$latinoaffect)
+
+df12$asianaffect <- recode_affect_w12(df12$asianaffect)
+
+df <- bind_rows(df12, df3)
+```
+
+```{r}
 # Create dummy variables: gender, usborn
 c(df$male, df$usborn) %<-% map(list(df$gender, df$usborn), recode_dummy)
 
@@ -279,13 +298,14 @@ c(df$rona.behav.sneeze, df$rona.behav.language, df$rona.behav.walk, df$rona.beha
 df$rona.index <- (df$rona.behav.sneeze + df$rona.behav.language + df$rona.behav.walk + df$rona.behav.transit + df$rona.behav.other)/5
 ```
 
-
 # Extra munging
 
 ```{r}
 # Reverse code 
 c(df$apa.discrim.rona, df$gendiscrim, df$linkedfate, df$trump.approve, df$trump.approve, df$apa.responsible, df$apa.have.rona, df$apa.harassment, df$idimport, df$asnpride, df$X2020likelyvote, df$ronaunfairasian) %<-% map(list(df$apa.discrim.rona, df$gendiscrim, df$linkedfate, df$trump.approve, df$trump.approve, df$apa.responsible, df$apa.have.rona, df$apa.harassment, df$idimport, df$asnpride, df$X2020likelyvote, df$ronaunfairasian), reverse)
+```
 
+```{r}
 # Normalize 
 c(df$apa.discrim.rona, df$gendiscrim, df$linkedfate, df$trump.approve, df$age, df$edu, df$apa.responsible, df$apa.have.rona, df$apa.harassment, df$idimport, df$asnpride, df$X2020likelyvote, df$ronaunfairasian) %<-% map(list(df$apa.discrim.rona, df$gendiscrim, df$linkedfate, df$trump.approve, df$age, df$edu, df$apa.responsible, df$apa.have.rona, df$apa.harassment, df$idimport, df$asnpride, df$X2020likelyvote, df$ronaunfairasian), rescale01)
 

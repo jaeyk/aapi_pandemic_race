@@ -1,0 +1,74 @@
+---
+title: "Descriptive analysis"
+author: "Jae Yeon Kim"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Load packages 
+
+```{r}
+if (!require(pacman)) install.packages("pacman")
+
+pacman::p_load(tidyverse, # tidyverse 
+               panelr, # panel data analysis
+               here, # computational reproducibility 
+               glue, # gluing objects and strings 
+               tidylog, # logging analysis
+               naniar, # missing data 
+               zeallot, # multiple assignments 
+               readxl, 
+               ggpubr, 
+               broom, 
+               patchwork, 
+               plm, 
+               broom.mixed, 
+               estimatr, 
+               stargazer,
+               DeclareDesign,
+               sensemakr,
+               mice)
+
+# for publication-friendly theme 
+theme_set(theme_pubr())
+
+source(here("functions/utils.r"))
+```
+
+# Load files 
+
+```{r message = FALSE}
+df <- read.csv(here("processed_data", "panel_data_cleaned.csv"))
+```
+
+# Summarize by group 
+
+```{r}
+var.list <- NULL
+var.list <- names(df)[str_detect(names(df), "disc")][c(1, 3)]
+
+var.list <- c(var.list, c("linkedfate", "idimport", "asnpride", "rona.behav.sneeze", "rona.behav.language", "rona.behav.walk", "rona.behav.transit", "rona.behav.other", "rona.behav.nochange", "rona.index", "X2020likelyvote", "biden", "DEM", "DEM.strong", "GOP", "GOP.strong", "unfair", "ronaunfairasian", "apa.responsible", "apa.have.rona", "apa.harassment", "unfair_others"))
+```
+
+```{r message = FALSE}
+low_edu <- subset(df, edu < 0.5)
+middle_edu <- subset(df, edu == 0.5)
+high_edu <- subset(df, edu > 0.5)
+
+sums <- bind_rows(
+  mutate(low_edu, edu = "Low"),
+  mutate(middle_edu, edu = "Middle"),
+  mutate(high_edu, edu = "High")
+)
+
+sums$edu <- factor(sums$edu, levels = c("High", "Middle", "Low"))
+```
+
+## General and COVID-19 discrimination perception
+
+```{r}
+plot_two_disc_sub(sums)
+ggsave(here("outputs", "disc_edu.png"))
+```

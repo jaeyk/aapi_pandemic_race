@@ -29,7 +29,9 @@ pacman::p_load(tidyverse, # tidyverse
                stargazer,
                DeclareDesign,
                sensemakr,
-               mice)
+               mice,
+               usmap,
+               janitor)
 
 # for publication-friendly theme 
 theme_set(theme_pubr())
@@ -43,13 +45,51 @@ source(here("functions/utils.r"))
 df <- read.csv(here("processed_data", "panel_data_cleaned.csv"))
 ```
 
+# Summary statistics 
+
+```{r}
+data("state")
+for (i in 1:50) {
+
+  df$state[df$state == i] <- state.abb[i]
+
+}
+
+state_tab <- janitor::tabyl(df$state) %>%
+  tibble()
+
+# Quick fixing 
+names(state_tab)[1] <- "state"
+state_tab$percent <- state_tab$percent*100
+
+state_tab %>%
+  arrange(desc(percent)) %>%
+  head(10)
+
+# Plotting 
+state_map <- plot_usmap(data = state_tab, 
+           values = "percent",
+           color = "red",
+           labels = TRUE,
+           label_color = "blue",
+           alpha = 0.25) +
+  scale_fill_continuous(
+    low = "white", high = "red",
+    name = "Percentage") + 
+  theme(legend.position = "right") +
+  labs(title = "Spatial distribution of respondents")
+
+state_map
+ggsave(here("outputs", "states.eps"),
+       bg = "transparent")
+```
 # Summarize by group 
 
 ```{r}
 var.list <- NULL
 var.list <- names(df)[str_detect(names(df), "disc")][c(1, 3)]
 
-var.list <- c(var.list, c("linkedfate", "idimport", "asnpride", "rona.behav.sneeze", "rona.behav.language", "rona.behav.walk", "rona.behav.transit", "rona.behav.other", "rona.behav.nochange", "rona.index", "X2020likelyvote", "biden", "DEM", "DEM.strong", "GOP", "GOP.strong", "unfair", "ronaunfairasian", "apa.responsible", "apa.have.rona", "apa.harassment", "unfair_others"))
+var.list <- c(var.list, c("linkedfate", "idimport", "asnpride", "rona.behav.sneeze", "rona.behav.language", "rona.behav.walk", "rona.behav.transit", "rona.behav.other", "rona.behav.nochange", "rona.index", "X2020likelyvote", "biden", "DEM", "DEM.strong", "GOP", "GOP.strong", "unfair", "ronaunfairasian", "apa.responsible", "apa.have.rona", "apa.harassment", "unfair_others", "whiteaffect", "blackaffect", "latinoaffect", "asianaffect"))
 ```
 
 ```{r message = FALSE}
@@ -57,6 +97,8 @@ group_sum <- purrr::map_dfr(seq(var.list), group_mean) %>%
     mutate(variable = rep(var.list, each = 3)) %>%
     filter(!is.na(mean)) 
 ```
+
+## Discrimination perception 
 
 ```{r}
 group_sum %>%
@@ -97,14 +139,14 @@ rona_density <- df %>%
          title = "COVID-19 discrimination") +
     geom_vline(xintercept = 0.5,  linetype = 'dotted', col = 'red', size = 1)
 
-gen_density / rona_density
+(gen_density / rona_density) + plot_annotation(tag_levels = "A")
 
 ggsave(here("outputs", "density.png"), width = 10)
 ```
 
 ```{r}
 group_sum %>%
-    filter(!str_detect(variable, "disc|rona|2020|biden|DEM|GOP|apa|unfair")) %>%
+    filter(!str_detect(variable, "disc|rona|2020|biden|DEM|GOP|apa|unfair|affect")) %>%
     mutate(variable = recode(variable, 
                              "asnpride" = "Proud to be Asian",
                              "linkedfate" = 
@@ -123,11 +165,37 @@ group_sum %>%
 ggsave(here("outputs", "solidarity.perception.png"), width = 8)
 ```
 
+
+## Affect 
+
+```{r}
+group_sum %>%
+  filter(wave_fac != "November") %>% 
+  filter(str_detect(variable, "affect")) %>%
+  mutate(variable = recode(variable, 
+                           "asianaffect" = "Asian",
+                           "latinoaffect" = "Latino",
+                           "blackaffect" = "Black",
+                           "whiteaffect" = "White")) %>%
+  mutate(mean = round(mean, 2)) %>%
+  ggplot(aes(x = wave_fac, y = mean,
+               ymax = mean + ci_high, 
+               ymin = mean - ci_low,
+             col = variable)) +
+        geom_pointrange() +
+        labs(title = "Affect",
+            x = "", y = "Average response",
+            col = "Affect") +
+        geom_hline(yintercept = 3.5, linetype = 'dotted', col = 'red', size = 1)
+
+ggsave(here("outputs", "affect.png"), width = 12)
+```
+
 ```{r}
 group_sum %>%
     filter(wave_fac == "May") %>% 
     filter(str_detect(variable, "rona")) %>%
-    filter(!str_detect(variable, "apa|nochange|2020|biden|DEM|GOP|fair")) %>%
+    filter(!str_detect(variable, "apa|nochange|2020|biden|DEM|GOP|fair|affect")) %>%
     mutate(variable = recode(variable, 
                              "rona.behav.sneeze" = "Avoid coughing/sneezing",
                              "rona.behav.language" = 
@@ -267,7 +335,7 @@ pid_plot <- group_sum %>%
 pid_plot
 ggsave(here("outputs", "pid.png"))
 
-pol_bev_plot + pid_plot
+(pol_bev_plot + pid_plot) + plot_annotation(tag_levels = "A")
 
 ggsave(here("outputs", "pol_bev.png"), width = 10)
 ```
@@ -347,8 +415,7 @@ wit_plot <- df %>%
          col = "Wave",
          title = "Witnessing COVID-19 discrimination")
 
-exp_plot /
-wit_plot
+(exp_plot / wit_plot) + plot_annotation(tag_levels = "A")
 
 ggsave(here("outputs", "disc_exp_wit.png"), height = 12, width = 9)
 ```
