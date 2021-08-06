@@ -31,7 +31,8 @@ pacman::p_load(tidyverse, # tidyverse
                sensemakr,
                mice,
                usmap,
-               janitor)
+               janitor,
+               modelsummary)
 
 # for publication-friendly theme 
 theme_set(theme_pubr())
@@ -79,9 +80,19 @@ state_map <- plot_usmap(data = state_tab,
   theme(legend.position = "right") +
   labs(title = "Spatial distribution of respondents")
 
+png(filename = here("outputs", "states.png"), 
+    res = 72)
 state_map
-ggsave(here("outputs", "states.eps"),
-       bg = "transparent")
+dev.off()
+
+df$yearborn <- ifelse(df$yearborn > 2021 | df$yearborn < 1900, NA, df$yearborn)
+
+df$age_non_scale <- 2021 - df$yearborn
+
+subset_df <- df %>% select(usborn, DEM, GOP, age_non_scale, male, edu)
+
+datasummary(All(subset_df) ~ Mean,
+            data = subset_df)
 ```
 # Summarize by group 
 
@@ -183,12 +194,11 @@ group_sum %>%
                ymin = mean - ci_low,
              col = variable)) +
         geom_pointrange() +
-        labs(title = "Affect",
-            x = "", y = "Average response",
+        labs(x = "", y = "Average response",
             col = "Affect") +
         geom_hline(yintercept = 3.5, linetype = 'dotted', col = 'red', size = 1)
 
-ggsave(here("outputs", "affect.png"), width = 12)
+ggsave(here("outputs", "affect.png"))
 ```
 
 ```{r}
