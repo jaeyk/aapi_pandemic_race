@@ -25,7 +25,7 @@ pacman::p_load(tidyverse, # tidyverse
                broom, 
                jtools, 
                patchwork, 
-               plm, 
+               glmer, 
                broom.mixed, 
                estimatr, 
                stargazer,
@@ -419,8 +419,10 @@ ggsave(here("outputs", "disc_exp_wit.png"), height = 12, width = 9)
 ```{r}
 df_na_sum <- df %>%
   filter(wave != 1) %>%
-  select(gendiscrim, apa.discrim.rona, usborn, DEM, GOP, age, male, edu) %>%
-  map_dfr(~is.na(.) %>% sum() / 1328)
+  select(gendiscrim, apa.discrim.rona, usborn, DEM, GOP, age, male, edu, income) %>%
+  map_dfr(~is.na(.) %>% mean())
+
+df_na_sum
 ```
 
 ```{r}
@@ -509,21 +511,24 @@ model.outs %>%
                        "factor(wave)3" = "Wave 3",
                        "GOP" = "Republican",
                        "DEM" = "Democrat",
-                       "age" = "Age")) %>%
+                       "age" = "Age",
+                       "income" = "Income")) %>%
   ggplot(aes(x = term, y = estimate, 
              ymax = conf.high, 
-             ymin = conf.low)) +
+             ymin = conf.low,
+             col = model)) +
     geom_pointrange() +
     coord_flip() +
-    facet_wrap(~factor(model)) +
     geom_hline(yintercept = 0, linetype = "dotted", color = "red", size = 1)  +
     labs(y = "Estimate",
          x = "",
+         col = "Model",
          title = "Likely to vote in 2020 election") +
-    ggrepel::geom_text_repel(aes(label = round(estimate, 2)))
+    ggrepel::geom_text_repel(aes(label = round(estimate, 2))) +
+    scale_colour_brewer(palette = "Set1") + theme(legend.position = "bottom")
 
-ggsave(here("outputs", "vote2020_imputed.png"), width = 10, 
-       height = 10)
+ggsave(here("outputs", "vote2020_imputed.png"), width = 8, 
+       height = 8)
 ```
 
 ### Sub
@@ -535,7 +540,6 @@ model_outs_binded <- bind_rows(mutate(model.outs.high, group = "High"),
           mutate(model.outs.low, group = "Low and middle")          )
 
 model_outs_binded %>%
-  filter(model == "Mixed model") %>%
   filter(!str_detect(term, "(Intercept)|sd")) %>%
   mutate(term = recode(term, 
                        "usborn" = "Born in US",
@@ -549,7 +553,8 @@ model_outs_binded %>%
                        "age" = "Age")) %>%
   ggplot(aes(x = term, y = estimate, 
              ymax = conf.high, 
-             ymin = conf.low)) +
+             ymin = conf.low,
+             col = model)) +
     geom_pointrange() +
     coord_flip() +
     facet_wrap(~factor(group)) +
@@ -558,10 +563,11 @@ model_outs_binded %>%
          x = "",
          title = "Likely to vote in 2020 election",
          col = "Group") +
-    ggrepel::geom_text_repel(aes(label = round(estimate, 2))) 
+    ggrepel::geom_text_repel(aes(label = round(estimate, 2))) +
+    theme(legend.position = "bottom")
 
-ggsave(here("outputs", "vote2020_sub_imputed.png"), width = 10, 
-       height = 10)
+ggsave(here("outputs", "vote2020_sub_imputed.png"), width = 8, 
+       height = 8)
 ```
 
 ## Biden candidacy
@@ -569,20 +575,12 @@ ggsave(here("outputs", "vote2020_sub_imputed.png"), width = 10,
 ### Main 
 
 ```{r}
-glm.out <- glm(biden ~ gendiscrim + apa.discrim.rona + usborn + GOP + DEM + male + edu + age + factor(wave), data = df, family = "binomial")
+model.outs <- cal_glm(df)
+```
 
-tidy(glm.out, conf.int = TRUE) %>%
-  interpret_estimate() %>%
-  mutate(term = recode(term, 
-                       "usborn" = "Born in US",
-                       "male" = "Male",
-                       "gendiscrim" = "General discrimination",
-                       "apa.discrim.rona" = "COVID discrimination",
-                       "edu" = "Education",
-                       "factor(wave)3" = "Wave 3",
-                       "GOP" = "Republican",
-                       "DEM" = "Democrat",
-                       "age" = "Age")) %>%
+```{r}
+model.outs %>%
+  filter(str_detect(model, "Within estimator")) %>%
   filter(!str_detect(term, "(Intercept)")) %>%
   ggplot(aes(x = term, y = estimate, 
              ymax = conf.high, 
@@ -593,9 +591,10 @@ tidy(glm.out, conf.int = TRUE) %>%
     ggrepel::geom_text_repel(aes(label = round(estimate, 2))) +
     labs(y = "Estimate",
          x = "",
-         title = "Suppporting Democratic Presidential candidate")
+         title = "Suppporting Democratic Presidential candidate") +
+    theme(legend.position = "bottom")
 
-ggsave(here("outputs", "biden_imputed.png"), width = 8, height = 8)
+ggsave(here("outputs", "biden_imputed.png"))
 ```
 
 ### Sub
@@ -606,6 +605,7 @@ mutate(cal_glm(df %>% filter(prior != 1)), group = "High"),
 mutate(cal_glm(df %>% filter(prior == 1)), group = "Low and Middle"))
 
 glm_outs_binded %>%
+  filter(str_detect(model, "Within estimator")) %>%
   filter(!str_detect(term, "(Intercept)")) %>%
   ggplot(aes(x = term, y = estimate, 
              ymax = conf.high, 

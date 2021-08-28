@@ -242,10 +242,6 @@ completed_df <- read.csv(here("processed_data/panel_data.csv"))
 
 Make a copy 
 
-```{r}
-df <- completed_df
-```
-
 ## Replace with NA
 
 ```{r}

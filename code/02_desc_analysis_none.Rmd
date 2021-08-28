@@ -25,7 +25,7 @@ pacman::p_load(tidyverse, # tidyverse
                broom, 
                jtools, 
                patchwork, 
-               plm, 
+               glmer, 
                broom.mixed, 
                estimatr, 
                stargazer,
@@ -38,6 +38,10 @@ pacman::p_load(tidyverse, # tidyverse
                flextable,
                devtools,
                stargazer)
+
+devtools::install_github('awhstin/awtools')
+
+library(awtools)
 
 source(here("functions/utils.r"))
 
@@ -324,7 +328,7 @@ ggsave(here("outputs", "political_outcome.png"))
 pid_plot <- group_sum %>%
     filter(str_detect(variable, "GOP|DEM")) %>%
     filter(!str_detect(variable, "strong")) %>%
-                             "biden" = "Supporting Biden candidacy",
+    mutate(variable = recode(variable,                          "biden" = "Supporting Biden candidacy",
                              "X2020likelyvote" = "Will vote in 2020 election")) %>%
     ggplot(aes(x = factor(wave_fac), y = mean,
                ymax = mean + ci_high, 
@@ -342,6 +346,9 @@ ggsave(here("outputs", "pid.png"))
 (pol_bev_plot + pid_plot) + plot_annotation(tag_levels = "A")
 
 ggsave(here("outputs", "pol_bev.png"), width = 10)
+
+t.test(subset(df, wave == 1)$DEM, subset(df, wave != 1)$DEM) %>% 
+  tidy()
 ```
 
 ## General and COVID-19 discrimination perception
@@ -480,12 +487,13 @@ two.group %>%
     geom_point() +
     geom_hline(yintercept = 0.05, linetype = "dotted", color = "red", size = 1) +
     labs(x = "",
-         y = "P value")
+         y = "P value") +
+    scale_color_brewer("Set1")
   
 ggsave(here("outputs", "p.value.two.group.png"), width = 8)
 ```
 
-```{r}
+```{r eval = FALSE}
 summary(lm(unfair_others ~ prior, data = df))
 ```
 
@@ -530,16 +538,22 @@ model.outs %>%
 ggsave(here("outputs", "vote2020.png"), height = 8, width = 8)
 ```
 
-### Sub
+```{r eval = FALSE}
+lm.out <- lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + age + male + edu + income + + factor(wave), data = df)
 
-Only mixed model 
+# Sensitivity analysis
+summary(sensemakr::sensemakr(lm.out, treatment = "apa.discrim.rona"))
+
+965/(664*2)
+```
+
+### Sub
 
 ```{r}
 model_outs_binded <- bind_rows(mutate(model.outs.high, group = "High"),
           mutate(model.outs.low, group = "Low and middle")          )
 
 model_outs_binded %>%
-  filter(model == "Mixed model") %>%
   filter(!str_detect(term, "(Intercept)|sd")) %>%
   mutate(term = recode(term, 
                        "usborn" = "Born in US",
@@ -553,7 +567,8 @@ model_outs_binded %>%
                        "age" = "Age")) %>%
   ggplot(aes(x = term, y = estimate, 
              ymax = conf.high, 
-             ymin = conf.low)) +
+             ymin = conf.low,
+             col = model)) +
     geom_pointrange() +
     coord_flip() +
     facet_wrap(~factor(group)) +
@@ -562,10 +577,10 @@ model_outs_binded %>%
          x = "",
          title = "Likely to vote in 2020 election",
          col = "Group") +
-    ggrepel::geom_text_repel(aes(label = round(estimate, 2))) 
+    ggrepel::geom_text_repel(aes(label = round(estimate, 2))) +
+    theme(legend.position = "bottom")
 
-ggsave(here("outputs", "vote2020_sub.png"), width = 10, 
-       height = 10)
+ggsave(here("outputs", "vote2020_sub.png"), height = 8, width = 8)
 ```
 
 ## Biden candidacy
@@ -573,20 +588,12 @@ ggsave(here("outputs", "vote2020_sub.png"), width = 10,
 ### Main 
 
 ```{r}
-glm.out <- glm(biden ~ gendiscrim + apa.discrim.rona + usborn + GOP + DEM + male + edu + age + factor(wave), data = df, family = "binomial")
+model.outs <- cal_glm(df)
+```
 
-tidy(glm.out, conf.int = TRUE) %>%
-  interpret_estimate() %>%
-  mutate(term = recode(term, 
-                       "usborn" = "Born in US",
-                       "male" = "Male",
-                       "gendiscrim" = "General discrimination",
-                       "apa.discrim.rona" = "COVID discrimination",
-                       "edu" = "Education",
-                       "factor(wave)3" = "Wave 3",
-                       "GOP" = "Republican",
-                       "DEM" = "Democrat",
-                       "age" = "Age")) %>%
+```{r}
+model.outs %>%
+  filter(str_detect(model, "Within estimator")) %>%
   filter(!str_detect(term, "(Intercept)")) %>%
   ggplot(aes(x = term, y = estimate, 
              ymax = conf.high, 
@@ -597,9 +604,10 @@ tidy(glm.out, conf.int = TRUE) %>%
     ggrepel::geom_text_repel(aes(label = round(estimate, 2))) +
     labs(y = "Estimate",
          x = "",
-         title = "Suppporting Democratic Presidential candidate")
+         title = "Suppporting Democratic Presidential candidate") +
+    theme(legend.position = "bottom")
 
-ggsave(here("outputs", "biden.png"), width = 8, height = 8)
+ggsave(here("outputs", "biden.png"))
 ```
 
 ### Sub
@@ -610,6 +618,7 @@ mutate(cal_glm(df %>% filter(prior != 1)), group = "High"),
 mutate(cal_glm(df %>% filter(prior == 1)), group = "Low and Middle"))
 
 glm_outs_binded %>%
+  filter(str_detect(model, "Within estimator")) %>%
   filter(!str_detect(term, "(Intercept)")) %>%
   ggplot(aes(x = term, y = estimate, 
              ymax = conf.high, 
@@ -621,8 +630,9 @@ glm_outs_binded %>%
     facet_wrap(~group) +
     labs(y = "Estimate",
          x = "",
-         title = "Suppporting Democratic Presidential candidate")
+         title = "Suppporting Democratic Presidential candidate",
+         col = "Model") +
+    theme(legend.position = "bottom")
 
-ggsave(here("outputs", "biden_sub.png"), width = 10, 
-       height = 10)
+ggsave(here("outputs", "biden_sub.png"))
 ```

@@ -1,3 +1,32 @@
+
+# Credit to Achim here:
+# http://stackoverflow.com/questions/27367974/
+# different-robust-standard-errors-of-logit-regression-in-stata-and-r
+# for the code in line 14 and 15
+
+robustse <- function(x, coef = c("logit", "odd.ratio", "probs")) {
+    suppressMessages(suppressWarnings(library(lmtest)))
+    suppressMessages(suppressWarnings(library(sandwich)))
+
+    sandwich1 <- function(object, ...) sandwich(object) *
+        nobs(object) / (nobs(object) - 1)
+    # Function calculates SE's
+    mod1 <- coeftest(x, vcov = sandwich1)
+    # apply the function over the variance-covariance matrix
+
+    if (coef == "logit") {
+        return(mod1) # return logit with robust SE's
+    } else if (coef == "odd.ratio") {
+        mod1[, 1] <- exp(mod1[, 1]) # return odd ratios with robust SE's
+        mod1[, 2] <- mod1[, 1] * mod1[, 2]
+        return(mod1)
+    } else {
+        mod1[, 1] <- (mod1[, 1]/4) # return probabilites with robust SE's
+        mod1[, 2] <- mod1[, 2]/4
+        return(mod1)
+    }
+}
+
 # Add the columns present in df2 but missing in df2 to df1
 
 add_miss_cols <- function(df1, df2) {
@@ -246,8 +275,20 @@ cal_glm <- function(x) {
 
     glm.out <- glm(biden ~ gendiscrim + apa.discrim.rona + usborn + GOP + DEM + age + male + edu + factor(wave), data = x, family = "binomial")
 
-    tidy(glm.out, conf.int = TRUE) %>%
+    glm.tidy <- tidy(glm.out, conf.int = TRUE) %>%
+    interpret_estimate() %>%
+    mutate(model = "Within estimator")
+
+    robust.out <- robustse(glm.out, coef = "logit")
+
+    robust.tidy <- tidy(robust.out, conf.int = TRUE) %>%
         interpret_estimate() %>%
+        mutate(model = "Within estimator (with robust standard errors)")
+
+
+    model.outs <- bind_rows(glm.tidy, robust.tidy)
+
+    model.outs <- model.outs %>%
         mutate(term = recode(term,
                              "age" = "Age",
                              "usborn" = "Born in US",
@@ -259,4 +300,6 @@ cal_glm <- function(x) {
                              "GOP" = "Republican",
                              "DEM" = "Democrat",
                              "apa.discrim.rona:linkedfate" = "COVID discrimination:Linked fate"))
+
+    return(model.outs)
 }
