@@ -17,7 +17,8 @@ pacman::p_load(tidyverse, # tidyverse
                glue, # gluing objects and strings 
                tidylog, # logging analysis
                readxl, 
-               zeallot)
+               zeallot,
+               flextable) # table
 
 source(here("functions/utils.r"))
 ```
@@ -133,12 +134,22 @@ common.q12 <- intersect(extract_name(w12, "W2"), extract_name(w12, "W1"))
 long12 <- w12 %>%
   select(matches(common.q12) | W1_respondent.id) 
 
+# Check Chinese %
+mean(long12$W1_natorigin == 1)
+```
+
+```{r}
 # Wave 1 and 3
 common.q13 <- intersect(extract_name(w13, "W3"), extract_name(w13, "W1"))
 
 long13 <- w13 %>%
   select(matches(common.q13) | W1_pid) 
 
+# Check Chinese %
+mean(long12$W1_natorigin == 1)
+```
+
+```{r}
 # Join
 long_df <- left_join(w13, w12, by = c("W1_pid" = "W1_pid"))
 
@@ -147,6 +158,9 @@ long_df <- long_df %>%
   select(!contains(".y"))
 
 names(long_df) <- str_replace_all(names(long_df), ".x", "")
+
+# Check Chinese %
+mean(long_df$W1_natorigin == 1)
 ```
 
 ## Bind by rows 
@@ -193,6 +207,7 @@ glue("The total # of participatns in each wave in the panel data: {nrow(binded_d
 
 # Check
 subset(binded_df, wave == 1)$gendiscrim[1:5]
+mean(binded_df$natorigin == 1, na.rm = TRUE)
 ```
 
 ## Final merging 
@@ -208,13 +223,12 @@ vars <- c("race", "gender", "natorigin", "usborn")
 
 completed_df <- fill(completed_df, race)
 completed_df <- fill(completed_df, gender)
-completed_df <- fill(completed_df, natorigin)
 completed_df <- fill(completed_df, usborn)
 ```
 
 
 ```{r}
-# 1992 obs and 106 variables 
+# 1992 obs and 105 variables 
 dim(completed_df)
 
 write.csv(completed_df, here("processed_data/panel_data.csv"))
@@ -281,6 +295,8 @@ df$all_asian_disc <- if_else(df$apa.discrim.who == 2, 1, 0)
 # Education
 df$edu <- rep(subset(df, wave == 1)$edu, 3)
 
+df$income <- rep(subset(df, wave == 1)$income, 3)
+
 df$state <- rep(subset(df, wave == 1)$state, 3)
   
 df$yearborn <- as.numeric(rep(subset(df, wave == 1)$yearborn, 3))
@@ -310,7 +326,6 @@ c(df$apa.discrim.rona, df$gendiscrim, df$linkedfate, df$trump.approve, df$trump.
 c(df$apa.discrim.rona, df$gendiscrim, df$linkedfate, df$trump.approve, df$age, df$edu, df$apa.responsible, df$apa.have.rona, df$apa.harassment, df$idimport, df$asnpride, df$X2020likelyvote, df$ronaunfairasian) %<-% map(list(df$apa.discrim.rona, df$gendiscrim, df$linkedfate, df$trump.approve, df$age, df$edu, df$apa.responsible, df$apa.have.rona, df$apa.harassment, df$idimport, df$asnpride, df$X2020likelyvote, df$ronaunfairasian), rescale01)
 
 # Factorize (categorical variables)
-df$natorigin <- factor(df$natorigin)
 df$usborn <- factor(df$usborn)
 df$male <- factor(df$male)
 df$party.id <- factor(df$party.id)
@@ -348,6 +363,41 @@ df$unfair <- if_else(df$ronaunfair == 1, 1, 0)
 df$unfair_others <- if_else(df$rona.apa.mistreat == 1, 1, 0)
 ```
 
+# Summary 
+
+```{r}
+table_df <- df %>%
+  summarize(female = mean(male %>% unclass() - 1),
+            for_born = 1 - mean(usborn %>% unclass() - 1),
+            edu_level = mean(edu),
+            income_level = mean(income),
+            chinese_pct = mean(if_else(str_detect(as.character(natorigin), "1"), 1, 0), na.rm = T),
+            japanese_pct = mean(if_else(str_detect(as.character(natorigin), "6"), 1, 0), na.rm = T),
+            filipino_pct = mean(if_else(str_detect(as.character(natorigin), "4"), 1, 0), na.rm = T),
+            korean_pct = mean(if_else(str_detect(as.character(natorigin), "3"), 1, 0), na.rm = T),
+            vietnamese_pct = mean(if_else(str_detect(as.character(natorigin), "5"), 1, 0), na.rm = T),
+            indian_pct = mean(if_else(str_detect(as.character(natorigin), "2"), 1, 0), na.rm = T)) %>% 
+  pivot_longer(cols = everything(), 
+               names_to = "Variables",
+               values_to = "Percentage") 
+
+table_df[-c(3:4),]$Percentage <- round(table_df[-c(3:4),]$Percentage, 2)*100
+
+table_df$Percentage[table_df$Variables == "edu_level"] <- "4 year degree"
+table_df$Percentage[table_df$Variables == "income_level"] <- "$70K - $79,999"
+
+table_df[-c(3:4),]$Percentage <- paste0(table_df[-c(3:4),]$Percentage, "%")
+
+names(table_df)[2] <- "Percentage/Average"
+
+table_df$Variables <- c("% Female", "% Foreign born", "Education level", "Income level", "% Chinese", "% Japanese", "% Fipipino", "% Korean", "% Vietnamese", "% Indian")
+
+sum_table <- regulartable(table_df) %>%
+  theme_booktabs() %>%
+  autofit()
+
+save_as_docx(sum_table, path = here("outputs", "summary_table.docx"))
+```
 # Export data 
 
 ```{r}

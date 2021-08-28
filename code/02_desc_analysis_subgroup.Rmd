@@ -31,9 +31,6 @@ pacman::p_load(tidyverse, # tidyverse
                sensemakr,
                mice)
 
-# for publication-friendly theme 
-theme_set(theme_pubr())
-
 source(here("functions/utils.r"))
 ```
 

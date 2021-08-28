@@ -221,24 +221,18 @@ tidy(t.test(subset(df, prior == 1) %>% pull({{x}}), subset(df, prior == 0) %>% p
 
 cal_model_outputs <- function(x) {
 
-    lm.out <- lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + age + male + edu + factor(wave), data = x)
+    lm.out <- lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + age + male + edu + income + + factor(wave), data = x)
 
-    lm.robust.out <- estimatr::lm_robust(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + age + male + edu + factor(wave), data = x)
+    robust.out <- estimatr::lm_robust(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + age + male + edu + income + factor(wave), data = x)
 
-    plm.out <- plm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + age + male + edu + factor(wave), data = x,
-                   model = "fd", index = c("pid", "wave"))
-
-    lme.out <- lmer(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + age + male + edu + factor(wave) + (1|pid), data = x)
+    lme.out <- lmer(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + age + male + edu + income + factor(wave) + (1|pid), data = x)
 
     model.outs <- bind_rows(
         tidy(lm.out, conf.int = TRUE) %>%
             mutate(model = "Within estimator"),
 
-        tidy(lm.robust.out, conf.int = TRUE) %>%
-            mutate(model = "Robust SE"),
-
-        tidy(plm.out, conf.int = TRUE) %>%
-            mutate(model = "FD estimator"),
+        tidy(robust.out, conf.int = TRUE) %>%
+            mutate(model = "Within estimator (with robust standard errors)"),
 
         broom.mixed::tidy(lme.out, conf.int = TRUE) %>%
             mutate(model = "Mixed model") %>%

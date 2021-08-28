@@ -20,8 +20,10 @@ pacman::p_load(tidyverse, # tidyverse
                naniar, # missing data 
                zeallot, # multiple assignments 
                readxl, 
-               ggpubr, 
+               ggpubr,
+               hrbrthemes, 
                broom, 
+               jtools, 
                patchwork, 
                plm, 
                broom.mixed, 
@@ -32,18 +34,23 @@ pacman::p_load(tidyverse, # tidyverse
                mice,
                usmap,
                janitor,
-               modelsummary)
-
-# for publication-friendly theme 
-theme_set(theme_pubr())
+               modelsummary,
+               flextable,
+               devtools,
+               stargazer)
 
 source(here("functions/utils.r"))
+
+install_github("markwestcott34/stargazer-booktabs")
 ```
 
 # Load files 
 
 ```{r message = FALSE}
 df <- read.csv(here("processed_data", "panel_data_cleaned.csv"))
+
+# t-test
+t.test(subset(df, wave == 2)$apa.discrim.rona, subset(df, wave == 3)$apa.discrim.rona, alternative = c("two.sided")) %>% tidy()
 ```
 
 # Summary statistics 
@@ -94,6 +101,7 @@ subset_df <- df %>% select(usborn, DEM, GOP, age_non_scale, male, edu)
 datasummary(All(subset_df) ~ Mean,
             data = subset_df)
 ```
+
 # Summarize by group 
 
 ```{r}
@@ -125,7 +133,7 @@ group_sum %>%
         ggrepel::geom_text_repel(aes(label = round(mean, 2))) +
         facet_wrap(~variable) +
         labs(title = "Changes in discrimination perception",
-            x = "Wave", y = "Average response") +
+            x = "", y = "Average response") +
         geom_hline(yintercept = 0.5,  linetype = 'dotted', col = 'red', size = 1)
 
 ggsave(here("outputs", "disc.perception.png"))
@@ -155,27 +163,6 @@ rona_density <- df %>%
 ggsave(here("outputs", "density.png"), width = 10)
 ```
 
-```{r}
-group_sum %>%
-    filter(!str_detect(variable, "disc|rona|2020|biden|DEM|GOP|apa|unfair|affect")) %>%
-    mutate(variable = recode(variable, 
-                             "asnpride" = "Proud to be Asian",
-                             "linkedfate" = 
-                             "Linked fate",
-                             "idimport" = "Asian identity important")) %>%
-    ggplot(aes(x = factor(wave_fac), y = mean ,
-               ymax = mean + ci_high, 
-               ymin = mean - ci_low)) +
-        geom_pointrange() +
-        ggrepel::geom_text_repel(aes(label = round(mean, 2))) +
-        facet_wrap(~variable) +
-        labs(title = "Changes in group identity and consciousness",
-            x = "Wave", y = "Average response") +
-        geom_hline(yintercept = 0.5,  linetype = 'dotted', col = 'red', size = 1)
-
-ggsave(here("outputs", "solidarity.perception.png"), width = 8)
-```
-
 
 ## Affect 
 
@@ -196,13 +183,14 @@ group_sum %>%
         geom_pointrange() +
         labs(x = "", y = "Average response",
             col = "Affect") +
-        geom_hline(yintercept = 3.5, linetype = 'dotted', col = 'red', size = 1)
+        geom_hline(yintercept = 3.5, linetype = 'dotted', col = 'red', size = 1) +
+        scale_colour_brewer(palette = "Set1")
 
 ggsave(here("outputs", "affect.png"))
 ```
 
 ```{r}
-group_sum %>%
+exp_table <- group_sum %>%
     filter(wave_fac == "May") %>% 
     filter(str_detect(variable, "rona")) %>%
     filter(!str_detect(variable, "apa|nochange|2020|biden|DEM|GOP|fair|affect")) %>%
@@ -214,44 +202,44 @@ group_sum %>%
                              "rona.behav.transit" = "Avoid public transporation",
                              "rona.behav.other" = "Others",
                              "rona.index" = "Average response")) %>%
-  mutate(mean = mean*100) %>%
-    ggplot(aes(x = factor(variable), y = mean,
-               ymax = mean + ci_high, 
-               ymin = mean - ci_low)) +
-        geom_pointrange() +
-        ggrepel::geom_text_repel(aes(label = paste0(round(mean, 2), "%"))) +
-        labs(title = "COVID-19 related marginalized experience (Wave 2)",
-            x = "", y = "Percentage") +
-        coord_flip() +
-        scale_y_continuous(labels = ~paste0(., "%"))
-
-ggsave(here("outputs", "rona_behave.png"), width = 10)
+  mutate(mean = glue("{round(mean, 2)*100}%")) 
 ```
 
 ```{r}
-group_sum %>%
+fair_table <- group_sum %>%
     #filter(wave_fac == "May") %>% 
     filter(str_detect(variable, "fair|treat")) %>%
     mutate(variable = recode(variable, 
  "ronaunfairasian" = "Experienced COVID discrimination due to race",
  "unfair" = "Experienced COVID-19 discrimination",
  "unfair_others" = "Witnessed COVID discrimination")) %>%
-  mutate(mean = mean*100) %>%
-    ggplot(aes(x = wave_fac, y = mean,
-               ymax = mean + ci_high, 
-               ymin = mean - ci_low)) +
-        geom_pointrange() +
-        ggrepel::geom_text_repel(aes(label = paste0(round(mean, 2), "%"))) +
-        labs(title = "COVID-19 related unfair treatment",
-            x = "", y = "Percentage") +
-        facet_wrap(~variable) +
-        scale_y_continuous(labels = ~paste0(., "%"))
-
-ggsave(here("outputs", "rona_fair.png"), width = 12)
+  mutate(mean = round(mean*100, 2)) %>%
+  mutate(mean = glue("{mean}%"))  
 ```
 
 ```{r}
-summary(lm(df$apa.discrim.rona ~ df$unfair_others))
+exp_fair_table <- bind_rows(exp_table, fair_table) %>%
+  select(wave_fac, mean, variable) %>%
+  filter(variable != "Average response") 
+
+names(exp_fair_table) <- c("Wave", "Average response", "Measurement")
+
+new_exp_fair_table <- exp_fair_table[-8,]
+
+due_to_race <- exp_fair_table$`Average response`[exp_fair_table$Measurement == "Experienced COVID discrimination due to race"]
+
+new_exp_fair_table$Measurement[8] <- glue("{new_exp_fair_table$Measurement[8]} 
+                                          (due to race: {due_to_race})")
+
+new_exp_fair_table$Wave[new_exp_fair_table$Wave == "May"] <- "May 2020"
+
+new_exp_fair_table$Wave[new_exp_fair_table$Wave == "November"] <- "November 2020"
+
+new_exp_fair_table <- regulartable(new_exp_fair_table) %>%
+  theme_booktabs() %>%
+  autofit()
+
+save_as_docx(new_exp_fair_table, path = here("outputs", "exp_fair_table.docx"))
 ```
 
 ```{r}
@@ -276,12 +264,19 @@ income_reduction_pct
 ```{r}
 df$lostjob <- if_else(!is.na(df$lostjob), 1, 0)
 df$incomereduc <- if_else(!is.na(df$incomereduc), 1, 0)
+```
 
-summary(lm(unfair ~ lostjob + incomereduc, data = subset(df, wave == 2)))
+```{r}
+mod1 <- lm(apa.discrim.rona ~ lostjob + incomereduc, data = subset(df, wave == 2)) 
 
-summary(lm(unfair_others ~ lostjob + incomereduc, data = subset(df, wave == 2)))
+mod2 <- lm(apa.discrim.rona ~ unfair_others, data = subset(df, wave == 2))
 
-summary(lm(apa.discrim.rona ~ lostjob + incomereduc, data = subset(df, wave == 2)))
+modelsummary(list(`Hardship` = mod1, `Race` = mod2),
+             fmt = 4,
+             coef_omit = "Intercept",
+             stars = TRUE,
+             vcov = "bootstrap", R = 1000,
+             output = here("outputs", "reg_measure.docx")) 
 ```
 
 2% participants in the wave experienced income reduction.
@@ -319,7 +314,7 @@ pol_bev_plot <- group_sum %>%
         scale_y_continuous(labels = scales::percent) +
         facet_wrap(~variable) +
         labs(title = "Changes in political preferences",
-            x = "Wave", y = "Percentage") 
+            x = "", y = "") 
 
 pol_bev_plot
 ggsave(here("outputs", "political_outcome.png"))
@@ -329,7 +324,6 @@ ggsave(here("outputs", "political_outcome.png"))
 pid_plot <- group_sum %>%
     filter(str_detect(variable, "GOP|DEM")) %>%
     filter(!str_detect(variable, "strong")) %>%
-    mutate(variable = recode(variable, 
                              "biden" = "Supporting Biden candidacy",
                              "X2020likelyvote" = "Will vote in 2020 election")) %>%
     ggplot(aes(x = factor(wave_fac), y = mean,
@@ -385,9 +379,10 @@ plot_w123 %>%
         labs(x = "Response to general discrimination Q in Wave 1", 
              y = "Average response to COVID-19 discrimination Q in Wave 2 and 3",
              col = "Wave") +
-        geom_hline(yintercept = 0.5,  linetype = 'dotted', col = 'red', size = 1) 
+        geom_hline(yintercept = 0.5,  linetype = 'dotted', col = 'red', size = 1) +
+        scale_colour_brewer(palette = "Set1")
 
-ggsave(here("outputs", "disc.wave.png"), height = 9, width = 9)
+ggplot2::ggsave(here("outputs", "disc_wave.png"), height = 9, width = 9)
 ```
 
 ```{r}
@@ -406,7 +401,8 @@ exp_plot <- df %>%
     labs(x = "Response to general discrimination Q in Wave 1", 
          y = "Average response",
          col = "Wave",
-         title = "Experiencing COVID-19 discrimination")
+         title = "Experiencing COVID-19 discrimination") +
+    scale_colour_brewer(palette = "Set1")
 
 wit_plot <- df %>%
   filter(wave != 1) %>%
@@ -423,11 +419,15 @@ wit_plot <- df %>%
     labs(x = "Response to general discrimination Q in Wave 1", 
          y = "Average response",
          col = "Wave",
-         title = "Witnessing COVID-19 discrimination")
+         title = "Witnessing COVID-19 discrimination") +
+    scale_colour_brewer(palette = "Set1")
 
 (exp_plot / wit_plot) + plot_annotation(tag_levels = "A")
 
 ggsave(here("outputs", "disc_exp_wit.png"), height = 12, width = 9)
+
+wit_plot
+ggsave(here("outputs", "wit.png"))
 ```
 
 ## General discrimination perception and partisanship 
@@ -435,17 +435,16 @@ ggsave(here("outputs", "disc_exp_wit.png"), height = 12, width = 9)
 ```{r}
 df %>%
   filter(!is.na(party.id)) %>%
-  group_by(party.id) %>%
-  summarise(mean = mean(gendiscrim, na.rm = TRUE),
-            ci_high = ci.high(gendiscrim, na.rm = TRUE),
-            ci_low = ci.low(gendiscrim, na.rm = TRUE)) %>%
-  ggplot(aes(x = party.id, y = mean, 
-             ymax = mean + ci_high, 
-             ymin = mean - ci_low)) +
-  geom_pointrange() +
-  ggrepel::geom_text_repel(aes(label = round(mean, 2))) +
-  labs(y = "Average response",
-       x = "Party ID")
+  group_by(gendiscrim, party.id) %>%
+  dplyr::summarize(n = n()) %>%
+    mutate(prop = n / sum(n),
+           prop = round(prop,2)) %>%
+  ggplot(aes(x = gendiscrim, y = prop, group = 1,
+               fill = factor(party.id))) +
+    geom_col(position = "fill") +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+    scale_fill_manual(values = c("blue", "purple", "red")) +
+  labs(y = "Proportion", x = "General discrimination perception", fill = "Party ID")
 
 ggsave(here("outputs", "gen_disc_party_id.png"))
 ```
@@ -484,7 +483,10 @@ two.group %>%
          y = "P value")
   
 ggsave(here("outputs", "p.value.two.group.png"), width = 8)
+```
 
+```{r}
+summary(lm(unfair_others ~ prior, data = df))
 ```
 
 ```{r}
@@ -509,21 +511,23 @@ model.outs %>%
                        "factor(wave)3" = "Wave 3",
                        "GOP" = "Republican",
                        "DEM" = "Democrat",
-                       "age" = "Age")) %>%
+                       "age" = "Age",
+                       "income" = "Income")) %>%
   ggplot(aes(x = term, y = estimate, 
              ymax = conf.high, 
-             ymin = conf.low)) +
+             ymin = conf.low,
+             col = model)) +
     geom_pointrange() +
     coord_flip() +
-    facet_wrap(~factor(model)) +
     geom_hline(yintercept = 0, linetype = "dotted", color = "red", size = 1)  +
     labs(y = "Estimate",
          x = "",
+         col = "Model",
          title = "Likely to vote in 2020 election") +
-    ggrepel::geom_text_repel(aes(label = round(estimate, 2)))
+    ggrepel::geom_text_repel(aes(label = round(estimate, 2))) +
+    scale_colour_brewer(palette = "Set1") + theme(legend.position = "bottom")
 
-ggsave(here("outputs", "vote2020.png"), width = 10, 
-       height = 10)
+ggsave(here("outputs", "vote2020.png"), height = 8, width = 8)
 ```
 
 ### Sub
