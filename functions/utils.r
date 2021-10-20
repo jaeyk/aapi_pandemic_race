@@ -83,8 +83,8 @@ recode_party_w23 <- function(df) {
     df[df == 1] <- "Republican"
     df[df == 2] <- "Independent"
     df[df == 3] <- "Democrat"
-    df[df == 4] <- NA
-    df[df == 5] <- NA
+    df[df == 4] <- "Other"
+    df[df == 5] <- "Other"
 
     return(df)
 }

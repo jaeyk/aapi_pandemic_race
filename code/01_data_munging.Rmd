@@ -89,6 +89,8 @@ sum(is.na(w3_copy$expdiscrim)) == nrow(w3_copy)
 w1 <- w1_copy
 w2 <- w2_copy
 w3 <- w3_copy
+
+mean(is.na(w2$apa.discrim.rona))
 ```
 
 ## Add an wave identifier 
@@ -245,6 +247,12 @@ Make a copy
 ## Replace with NA
 
 ```{r}
+mean(is.na(subset(completed_df, wave != 1)$apa.discrim.rona))
+
+df <- completed_df
+```
+
+```{r}
 df <- na_if(df, 9999)
 
 df$ronaunfairasian <- na_if(df$ronaunfairasian, 4)
@@ -255,7 +263,10 @@ df$ronaunfairasian <- na_if(df$ronaunfairasian, 4)
 ```{r}
 df1 <- subset(df, wave == 1) 
 df23 <- subset(df, wave != 1)
+```
 
+```{r}
+unique(df$party.id)
 # Party ID
 df1$party.id <- recode_party_w1(df1$party.id)
 df23$party.id <- recode_party_w23(df23$party.id)
@@ -263,7 +274,7 @@ df23$party.id <- recode_party_w23(df23$party.id)
 df <- bind_rows(df1, df23)
 
 # Check 
-unique(df$party.id) %in% c("Republican", "Independent", "Democrat", NA) == TRUE
+unique(df$party.id) %in% c("Republican", "Independent", "Democrat", "Other", NA) == TRUE
 ```
 
 ```{r}
@@ -314,7 +325,10 @@ df$rona.index <- (df$rona.behav.sneeze + df$rona.behav.language + df$rona.behav.
 
 ```{r}
 # Reverse code 
-c(df$apa.discrim.rona, df$gendiscrim, df$linkedfate, df$trump.approve, df$trump.approve, df$apa.responsible, df$apa.have.rona, df$apa.harassment, df$idimport, df$asnpride, df$X2020likelyvote, df$ronaunfairasian) %<-% map(list(df$apa.discrim.rona, df$gendiscrim, df$linkedfate, df$trump.approve, df$trump.approve, df$apa.responsible, df$apa.have.rona, df$apa.harassment, df$idimport, df$asnpride, df$X2020likelyvote, df$ronaunfairasian), reverse)
+c(df$apa.discrim.rona, df$linkedfate, df$trump.approve, df$trump.approve, df$apa.responsible, df$apa.have.rona, df$apa.harassment, df$idimport, df$asnpride, df$X2020likelyvote, df$ronaunfairasian) %<-% map(list(df$apa.discrim.rona, df$linkedfate, df$trump.approve, df$trump.approve, df$apa.responsible, df$apa.have.rona, df$apa.harassment, df$idimport, df$asnpride, df$X2020likelyvote, df$ronaunfairasian), reverse)
+
+unique(df$apa.discrim.rona)
+unique(df$gendiscrim)
 ```
 
 ```{r}

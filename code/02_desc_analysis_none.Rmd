@@ -437,25 +437,6 @@ wit_plot
 ggsave(here("outputs", "wit.png"))
 ```
 
-## General discrimination perception and partisanship 
-
-```{r}
-df %>%
-  filter(!is.na(party.id)) %>%
-  group_by(gendiscrim, party.id) %>%
-  dplyr::summarize(n = n()) %>%
-    mutate(prop = n / sum(n),
-           prop = round(prop,2)) %>%
-  ggplot(aes(x = gendiscrim, y = prop, group = 1,
-               fill = factor(party.id))) +
-    geom_col(position = "fill") +
-    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
-    scale_fill_manual(values = c("blue", "purple", "red")) +
-  labs(y = "Proportion", x = "General discrimination perception", fill = "Party ID")
-
-ggsave(here("outputs", "gen_disc_party_id.png"))
-```
-
 # Regression analysis
 
 ## Likely to vote 
@@ -470,7 +451,9 @@ two.group <- bind_rows(tidy_test(usborn) %>% mutate(variable = "Born in US"),
   tidy_test(GOP) %>% mutate(variable = "Republican"),
   tidy_test(DEM) %>% mutate(variable = "Democrat")
 ) 
+```
 
+```{r}
 two.group %>%
   ggplot(aes(x = variable, y = estimate, 
              ymax = conf.high,
@@ -478,18 +461,22 @@ two.group %>%
     geom_pointrange() +
     geom_hline(yintercept = 0, linetype = "dotted", color = "red", size = 1) +
     labs(x = "",
-         y = "Estimate")
+         y = "Estimate",
+         title = glue("Estimate 1: Low and Middle (<=0.5)
+                       Estimate 2: High (>0.5)"))
   
 ggsave(here("outputs", "estimate.two.group.png"), width = 8)
+```
 
+```{r}
 two.group %>%
   ggplot(aes(x = variable, y = p.value)) +
     geom_point() +
     geom_hline(yintercept = 0.05, linetype = "dotted", color = "red", size = 1) +
     labs(x = "",
          y = "P value") +
-    scale_color_brewer("Set1")
-  
+    scale_color_brewer("Set1") 
+
 ggsave(here("outputs", "p.value.two.group.png"), width = 8)
 ```
 
@@ -544,7 +531,7 @@ lm.out <- lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GO
 # Sensitivity analysis
 summary(sensemakr::sensemakr(lm.out, treatment = "apa.discrim.rona"))
 
-965/(664*2)
+1035/(664*2)
 ```
 
 ### Sub
@@ -593,7 +580,7 @@ model.outs <- cal_glm(df)
 
 ```{r}
 model.outs %>%
-  filter(str_detect(model, "Within estimator")) %>%
+  filter(str_detect(model, "robust")) %>%
   filter(!str_detect(term, "(Intercept)")) %>%
   ggplot(aes(x = term, y = estimate, 
              ymax = conf.high, 
@@ -618,7 +605,7 @@ mutate(cal_glm(df %>% filter(prior != 1)), group = "High"),
 mutate(cal_glm(df %>% filter(prior == 1)), group = "Low and Middle"))
 
 glm_outs_binded %>%
-  filter(str_detect(model, "Within estimator")) %>%
+  filter(str_detect(model, "robust")) %>%
   filter(!str_detect(term, "(Intercept)")) %>%
   ggplot(aes(x = term, y = estimate, 
              ymax = conf.high, 
