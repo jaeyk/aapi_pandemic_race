@@ -273,7 +273,7 @@ cal_model_outputs <- function(x) {
 
 cal_glm <- function(x) {
 
-    glm.out <- glm(biden ~ gendiscrim + apa.discrim.rona + usborn + GOP + DEM + age + male + edu + factor(wave), data = x, family = "binomial")
+    glm.out <- glm(biden ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + age + male + edu + income + factor(wave), data = x, family = "binomial")
 
     glm.tidy <- tidy(glm.out, conf.int = TRUE) %>%
     interpret_estimate() %>%
@@ -293,6 +293,7 @@ cal_glm <- function(x) {
                              "age" = "Age",
                              "usborn" = "Born in US",
                              "male" = "Male",
+                             "income" = "Income",
                              "gendiscrim" = "General discrimination",
                              "apa.discrim.rona" = "COVID discrimination",
                              "edu" = "Education",
