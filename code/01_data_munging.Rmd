@@ -252,6 +252,20 @@ mean(is.na(subset(completed_df, wave != 1)$apa.discrim.rona))
 df <- completed_df
 ```
 
+ronaunfair = unfairly treated because of COVID 
+Yes (1)
+No (2)
+
+ronaunfairasian = unfairly treated because of COVID + Asian
+Very likely (1)
+Somewhat likely (2)
+Not very likely (3)
+I'm not sure (4)
+
+rona.apa.mistreat = witnessing COVID-19 discrimination
+Yes (1)
+No (2)
+
 ```{r}
 df <- na_if(df, 9999)
 
@@ -310,6 +324,9 @@ df$yearborn <- as.numeric(rep(subset(df, wave == 1)$yearborn, 3))
 
 df$age <- 2021 - df$yearborn
 df$age <- ifelse(df$age > 0 & df$age < 100, df$age, NA)
+
+df$ronaunfair <- if_else(df$ronaunfair == 1, 1, 0)
+df$rona.apa.mistreat <- if_else(df$rona.apa.mistreat == 1, 1, 0)
 ```
 
 ```{r}
@@ -369,13 +386,6 @@ df$male <- rep(subset(df, wave == 1)$male, 3)
 df$usborn <- rep(subset(df, wave == 1)$usborn, 3)
 
 df$biden <- if_else(df$X2020likelycand == 1, 1, 0)
-```
-
-```{r}
-df$unfair <- if_else(df$ronaunfair == 1, 1, 0)
-# Wave 2 1, 2 
-# Wave 3 1, 2
-df$unfair_asian <- if_else(df$ronaunfairasian == 1 | df$ronaunfairasian == 2, 1, 0)
 ```
 
 # Summary 
