@@ -121,13 +121,11 @@ model.outs.high <- cal_model_outputs(df %>%
 ```{r}
 models <- list(
 
-"Model 1" = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona, data = df),
+"Model 1" = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + factor(wave), data = df),
 
 "Model 2" = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave), data = df),
 
-"Model 3" = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = df),
-
-"Model 4" = estimatr::lm_robust(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = df))
+"Model 3" = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = df))
 
 modelsummary(models,
              fmt = 3,
@@ -147,7 +145,9 @@ modelsummary(models,
                    "male" = "Male",
                    "factor(wave)3" = "Wave3",
                    "korean" = "Korean",
-                   "japanese" = "Japanese"))
+                   "japanese" = "Japanese"),
+             vcov = "HC2",
+             cluster = "state")
 ```
 
 ```{r}
@@ -164,44 +164,34 @@ summary(sense.out)
 ### Sub
 
 ```{r}
-model_outs_binded <- bind_rows(
-    mutate(model.outs.low, group = "Low Discrimination Pre-COVID"),
-    mutate(model.outs.middle, group = "Middle Discrimination Pre-COVID"),                  
-    mutate(model.outs.high, group = "High Discrimination Pre-COVID"))
+sub.models <- list(
+"High Discrimination Pre-COVID" = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = subset(df, prior == "High")),
+            
+"Middle Discrimination Pre-COVID" = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = subset(df, prior == "Middle")),
+            
+"Low Discrimination Pre-COVID" = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = subset(df, prior == "Low")))
 
-model_outs_binded %>%
-    mutate(group = factor(group, levels = c("High Discrimination Pre-COVID", "Middle Discrimination Pre-COVID", "Low Discrimination Pre-COVID"))) %>%
-  filter(!str_detect(term, "(Intercept)|sd")) %>%
-  filter(model == "Within estimator (with robust standard errors)") %>%
-  mutate(term = factor(term, levels = c("gendiscrim","apa.discrim.rona","usborn","edu","income","DEM","GOP","age","male","factor(wave)3","korean","japanese"))) %>% 
-  mutate(term = fct_rev(term)) %>%
-  mutate(term = recode(term, 
-                   "gendiscrim" = "General discrimination",
+modelsummary(sub.models,
+             fmt = 3,
+             coef_omit = "Intercept",
+             statistic = c("p = {p.value}"),
+             stars = TRUE, 
+             output = here("outputs", "reg_tb_sub1.docx"),
+             coef_rename = 
+                 c("gendiscrim" = "General discrimination",
                    "apa.discrim.rona" = "COVID-19 discrimination",
                    "usborn" = "US born",
                    "edu" = "Education",
                    "income" = "Income",
-                   "DEM" = "Democratic Party",
-                   "GOP" = "Republican Party",
+                   "DEM" = "DEM",
+                   "GOP" = "GOP",
                    "age" = "Age",
                    "male" = "Male",
                    "factor(wave)3" = "Wave3",
                    "korean" = "Korean",
-                   "japanese" = "Japanese")) %>%
-  ggplot(aes(x = term, y = estimate, 
-             ymax = conf.high, 
-             ymin = conf.low)) +
-    geom_pointrange() +
-    coord_flip() +
-    facet_wrap(~factor(group)) +
-    geom_hline(yintercept = 0, linetype = "dotted", color = "red", size = 1)  +
-    labs(y = "Estimate",
-         x = "",
-         col = "Group") +
-    ggrepel::geom_text_repel(aes(label = round(estimate, 2))) +
-    theme(legend.position = "bottom")
-
-ggsave(here("outputs", "vote2020_sub_imputed.png"), width = 12)
+                   "japanese" = "Japanese"),
+             vcov = "HC2",
+             cluster = "state")
 ```
 
 ## Biden candidacy
@@ -209,49 +199,79 @@ ggsave(here("outputs", "vote2020_sub_imputed.png"), width = 12)
 ### Main 
 
 ```{r}
-model.outs <- cal_glm(df)
-```
+biden.models <- list(
 
-```{r}
-model.outs %>%
-  filter(str_detect(model, "Within estimator")) %>%
-  filter(!str_detect(term, "(Intercept)")) %>%
-  ggplot(aes(x = term, y = estimate, 
-             ymax = conf.high, 
-             ymin = conf.low)) +
-    geom_pointrange() +
-    coord_flip() +
-    geom_hline(yintercept = 0, linetype = "dotted", color = "red", size = 1) +
-    ggrepel::geom_text_repel(aes(label = round(estimate, 2))) +
-    labs(y = "Estimate",
-         x = "",
-         title = "Suppporting Democratic Presidential candidate") +
-    theme(legend.position = "bottom")
+"Model 1" = glm(biden ~ gendiscrim + apa.discrim.rona + factor(wave), data = df, family = binomial),
 
-ggsave(here("outputs", "biden_imputed.png"))
+"Model 2" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave), data = df, family = binomial),
+
+"Model 3" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = df, family = binomial))
+
+modelsummary(biden.models,
+             exponentiate = TRUE,
+             fmt = 3,
+             coef_omit = "Intercept",
+             statistic = c("p = {p.value}"),
+             stars = TRUE, 
+             output = here("outputs", "reg_tb2.docx"),
+             coef_rename = 
+                 c("gendiscrim" = "General discrimination",
+                   "apa.discrim.rona" = "COVID-19 discrimination",
+                   "usborn" = "US born",
+                   "edu" = "Education",
+                   "income" = "Income",
+                   "DEM" = "DEM",
+                   "GOP" = "GOP",
+                   "age" = "Age",
+                   "male" = "Male",
+                   "factor(wave)3" = "Wave3",
+                   "korean" = "Korean",
+                   "japanese" = "Japanese"),
+             vcov = c("HC0"),
+             cluster = "state")
+
+sense.out.biden <- sensemakr(model = lm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = df),
+          treatment = "apa.discrim.rona", 
+          benchmark_covariates = "usborn",
+          kd = 1:3, 
+          ky = 1:3, 
+          q = 1)
+
+summary(sense.out.biden)
+
+lm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = df)
 ```
 
 ### Sub
 
 ```{r}
-glm_outs_binded <- bind_rows(
-mutate(cal_glm(df %>% filter(prior != 1)), group = "High"), 
-mutate(cal_glm(df %>% filter(prior == 1)), group = "Low and Middle"))
+sub.models <- list(
+"High Discrimination Pre-COVID" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = subset(df, prior == "High"), family = binomial),
+            
+"Middle Discrimination Pre-COVID" = glm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = subset(df, prior == "Middle"), family = binomial),
+            
+"Low Discrimination Pre-COVID" = glm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = subset(df, prior == "Low"), family = binomial))
 
-glm_outs_binded %>%
-  filter(str_detect(model, "Within estimator")) %>%
-  filter(!str_detect(term, "(Intercept)")) %>%
-  ggplot(aes(x = term, y = estimate, 
-             ymax = conf.high, 
-             ymin = conf.low)) +
-    geom_pointrange() +
-    coord_flip() +
-    geom_hline(yintercept = 0, linetype = "dotted", color = "red", size = 1) +
-    ggrepel::geom_text_repel(aes(label = round(estimate, 2))) +
-    facet_wrap(~group) +
-    labs(y = "Estimate",
-         x = "",
-         title = "Suppporting Democratic Presidential candidate")
-
-ggsave(here("outputs", "biden_sub_imputed.png"))
+modelsummary(sub.models,
+             exponentiate = TRUE,
+             fmt = 3,
+             coef_omit = "Intercept",
+             statistic = c("p = {p.value}"),
+             stars = TRUE, 
+             output = here("outputs", "reg_tb_sub2.docx"),
+             coef_rename = 
+                 c("gendiscrim" = "General discrimination",
+                   "apa.discrim.rona" = "COVID-19 discrimination",
+                   "usborn" = "US born",
+                   "edu" = "Education",
+                   "income" = "Income",
+                   "DEM" = "DEM",
+                   "GOP" = "GOP",
+                   "age" = "Age",
+                   "male" = "Male",
+                   "factor(wave)3" = "Wave3",
+                   "korean" = "Korean",
+                   "japanese" = "Japanese"),
+             vcov = "HC0",
+             cluster = "state")
 ```

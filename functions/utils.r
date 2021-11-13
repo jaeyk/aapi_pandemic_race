@@ -283,14 +283,16 @@ cal_glm <- function(x) {
     model.outs <- bind_rows(glm.tidy, robust.tidy)
 
     model.outs <- model.outs %>%
+        mutate(term = factor(term, levels = c("gendiscrim","apa.discrim.rona","usborn","edu","income","DEM","GOP","age","male","factor(wave)3","korean","japanese"))) %>%
+        mutate(term = fct_rev(term)) %>%
         mutate(term = recode(term,
                              "gendiscrim" = "General discrimination",
                              "apa.discrim.rona" = "COVID-19 discrimination",
                              "usborn" = "US born",
                              "edu" = "Education",
                              "income" = "Income",
-                             "DEM" = "DEM",
-                             "GOP" = "GOP",
+                             "DEM" = "Democratic Party",
+                             "GOP" = "Republican Party",
                              "age" = "Age",
                              "male" = "Male",
                              "factor(wave)3" = "Wave3",
