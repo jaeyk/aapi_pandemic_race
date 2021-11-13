@@ -307,19 +307,55 @@ df12$asianaffect <- recode_affect_w12(df12$asianaffect)
 df <- bind_rows(df12, df3)
 ```
 
+- Chinese (1)  
+- Taiwanese (2)  
+- Indian (3)  
+- Korean (4)  
+- Filipino (5)  
+- Vietnamese (6)  
+- Japanese (7)  
+- Pakistani (8)  
+- Thai (9)  
+- Iranian (10)  
+- Bangladeshi (11)  
+- Laotian (12) 
+- Cambodian (13)  
+- Hmong (14)  
+- Native Hawaiian (15)  
+- Samoan (16)  
+- Bhutanese (17)  
+- Burmese (18)  
+- Fijian (19)  
+- Indonesian (20)  
+- Malaysian (21)  
+- Mongolian (22)  
+- Nepalese (23)  
+- Singaporean (24)  
+- Sri Lankan (25)  
+- Taiwanese (26)  
+- Tongan (27)  
+- Other Asian country (please indicate which) (28) 
+- Do Not Know (29) [END OF SURVEY] 
+- No Asian background (30) [END OF SURVEY] 
+
 ```{r}
 # Create dummy variables: gender, usborn
 c(df$male, df$usborn) %<-% map(list(df$gender, df$usborn), recode_dummy)
 
 df$all_asian_disc <- if_else(df$apa.discrim.who == 2, 1, 0)
 
-# Education
+# SES
 df$edu <- rep(subset(df, wave == 1)$edu, 3)
-
 df$income <- rep(subset(df, wave == 1)$income, 3)
 
 df$state <- rep(subset(df, wave == 1)$state, 3)
-  
+df$natorigin <- rep(subset(df, wave == 1)$natorigin, 3)
+
+df$korean <- if_else(df$natorigin == 4, 1, 0)
+df$japanese <- if_else(df$natorigin == 7, 1, 0)
+```
+
+```{r}
 df$yearborn <- as.numeric(rep(subset(df, wave == 1)$yearborn, 3))
 
 df$age <- 2021 - df$yearborn
@@ -360,6 +396,10 @@ df$state <- factor(df$state)
 
 subset(df, wave == 2)$gendiscrim[1:5]
 subset(df, wave == 2)$X2020likelyvote[1:5]
+
+df %>%
+    filter(wave == 1) %>%
+    tabyl(party.id)
 ```
 
 ```{r}

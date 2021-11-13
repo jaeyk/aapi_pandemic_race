@@ -250,22 +250,16 @@ tidy(t.test(subset(df, prior == 1) %>% pull({{x}}), subset(df, prior == 0) %>% p
 
 cal_model_outputs <- function(x) {
 
-    lm.out <- lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + age + male + edu + income + + factor(wave), data = x)
+    lm.out <- lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = x)
 
-    robust.out <- estimatr::lm_robust(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + age + male + edu + income + factor(wave), data = x)
-
-    lme.out <- lmer(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + age + male + edu + income + factor(wave) + (1|pid), data = x)
+    robust.out <- estimatr::lm_robust(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = x)
 
     model.outs <- bind_rows(
         tidy(lm.out, conf.int = TRUE) %>%
             mutate(model = "Within estimator"),
 
         tidy(robust.out, conf.int = TRUE) %>%
-            mutate(model = "Within estimator (with robust standard errors)"),
-
-        broom.mixed::tidy(lme.out, conf.int = TRUE) %>%
-            mutate(model = "Mixed model") %>%
-            dplyr::select(!matches("effect|group"))
+            mutate(model = "Within estimator (with robust standard errors)")
     )
 
     return(model.outs)
@@ -273,7 +267,7 @@ cal_model_outputs <- function(x) {
 
 cal_glm <- function(x) {
 
-    glm.out <- glm(biden ~ gendiscrim + apa.discrim.rona + usborn + DEM + GOP + age + male + edu + income + factor(wave), data = x, family = "binomial")
+    glm.out <- glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = x, family = "binomial")
 
     glm.tidy <- tidy(glm.out, conf.int = TRUE) %>%
     interpret_estimate() %>%
@@ -290,17 +284,18 @@ cal_glm <- function(x) {
 
     model.outs <- model.outs %>%
         mutate(term = recode(term,
-                             "age" = "Age",
-                             "usborn" = "Born in US",
-                             "male" = "Male",
-                             "income" = "Income",
                              "gendiscrim" = "General discrimination",
-                             "apa.discrim.rona" = "COVID discrimination",
+                             "apa.discrim.rona" = "COVID-19 discrimination",
+                             "usborn" = "US born",
                              "edu" = "Education",
-                             "factor(wave)3" = "Wave 3",
-                             "GOP" = "Republican",
-                             "DEM" = "Democrat",
-                             "apa.discrim.rona:linkedfate" = "COVID discrimination:Linked fate"))
+                             "income" = "Income",
+                             "DEM" = "DEM",
+                             "GOP" = "GOP",
+                             "age" = "Age",
+                             "male" = "Male",
+                             "factor(wave)3" = "Wave3",
+                             "korean" = "Korean",
+                             "japanese" = "Japanese"))
 
     return(model.outs)
 }

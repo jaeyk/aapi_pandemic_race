@@ -96,6 +96,11 @@ subset_df <- df %>% select(usborn, DEM, GOP, age_non_scale, male, edu)
 
 datasummary(All(subset_df) ~ Mean,
             data = subset_df)
+
+df <- replace_na(df, list(lostjob = 0, 
+                          ronaunfairasian = 0, 
+                          incomereduc = 0,
+                          rona.apa.mistreat = 0))
 ```
 
 # Summarize by group 
@@ -260,15 +265,14 @@ round(income_reduction_pct, 4) * 100
 ```
 
 ```{r}
-df <- replace_na(df, list(lostjob = 0, incomereduc = 0,
-                          rona.apa.mistreat = 0))
-
 mod1 <- lm(apa.discrim.rona ~ lostjob + incomereduc, data = subset(df, wave == 2)) 
 
-mod2 <- lm(apa.discrim.rona ~ rona.apa.mistreat, data = subset(df, wave == 2))
+mod2 <- lm(apa.discrim.rona ~ ronaunfairasian, data = subset(df, wave == 2))
+
+mod3 <- lm(apa.discrim.rona ~ rona.apa.mistreat, data = subset(df, wave == 2))
 
 set.seed(1234)
-modelsummary(list(`Hardship` = mod1, `Race` = mod2),
+modelsummary(list(`Hardship` = mod1, `Experience` = mod2, `Witnesing` = mod3),
              fmt = 4,
              coef_omit = "Intercept",
              statistic = "p.value",
@@ -314,6 +318,13 @@ pol_bev_plot <- group_sum %>%
 
 pol_bev_plot
 ggsave(here("outputs", "political_outcome.png"))
+```
+
+## PID
+
+```{r}
+t.test(subset(df, wave == 1)$DEM, subset(df, wave != 1)$DEM) %>%
+    tidy()
 ```
 
 ```{r}
@@ -408,21 +419,25 @@ exp_plot <- df %>%
     ggrepel::geom_text_repel(aes(label = paste0(round(mean, 2)*100, "%"))) +
         scale_y_continuous(labels = scales::percent)
 
+wit_plot <- 
+
+mean(subset(df, wave == 2)$rona.apa.mistreat, is.na = T)
+```
+
+```{r}
 wit_plot <- df %>%
   filter(wave == 2) %>%
   group_by(proxy, wave) %>%
   summarize(mean = mean(rona.apa.mistreat, na.rm = TRUE),
             ci_high  = ci.high(rona.apa.mistreat, na.rm = TRUE),
             ci_low = ci.low(rona.apa.mistreat, na.rm = TRUE)) %>%
-  ggplot(aes(x = proxy, y = mean, col = factor(wave),
+  ggplot(aes(x = proxy, y = mean,
              ymax = mean + ci_high,
              ymin = mean - ci_low)) +
     geom_pointrange() +
     ylim(c(0, 1)) +
     labs(x = "Response to general discrimination Q in Wave 1", 
-         y = "Average response",
-         col = "Wave",
-         title = "Witnessing COVID-19 discrimination") +
+         y = "Response to witnessing COVID-19 discrimination Q in Wave 2") +
     scale_colour_brewer(palette = "Set1") +
     ggrepel::geom_text_repel(aes(label = paste0(round(mean, 2)*100, "%"))) +
         scale_y_continuous(labels = scales::percent)
