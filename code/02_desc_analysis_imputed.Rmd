@@ -275,3 +275,22 @@ modelsummary(sub.models,
              vcov = "HC0",
              cluster = "state")
 ```
+
+## Subgroup summary 
+
+```{r}
+modelplot(lm(gendiscrim ~ usborn + edu + income + DEM + GOP + age + male, data = subset(df, wave == 1)),
+          coef_omit = "Intercept",
+          vcov = "HC2",
+          coef_rename = 
+                 c("usborn" = "US born",
+                   "edu" = "Education",
+                   "income" = "Income",
+                   "DEM" = "Democratic Party",
+                   "GOP" = "Republican Party",
+                   "age" = "Age",
+                   "male" = "Male")) +
+    geom_vline(xintercept = 0, col = "red", linetype = "dashed")
+
+ggsave(here("outputs", "correlate.png"))
+```
