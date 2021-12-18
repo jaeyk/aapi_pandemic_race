@@ -34,11 +34,13 @@ pacman::p_load(tidyverse, # tidyverse
                mice,
                usmap,
                janitor,
-               modelsummary)
+               modelsummary, 
+               flextable,
+               officer)
 
 source(here("functions/utils.r"))
 
-ggplot2::theme_set(ggpubr::theme_pubclean())
+ggplot2::theme_set(ggpubr::theme_pubr())
 
 # no scientific notation
 options(scipen = 999)
@@ -158,7 +160,18 @@ sense.out <- sensemakr(model = lm(X2020likelyvote ~ gendiscrim + apa.discrim.ron
           ky = 1:3, 
           q = 1)
 
-summary(sense.out)
+main.sense <- summary(sense.out) %>%
+    flextable() %>%
+    set_table_properties(layout = "autofit", width = .8)
+
+main.tmp <- tempfile(fileext = ".docx")
+
+# Create a docx file
+read_docx() %>% 
+  body_add_flextable(main.sense) %>% 
+  print(target = main.tmp)
+
+browseURL(main.tmp)
 ```
 
 ### Sub
@@ -229,7 +242,9 @@ modelsummary(biden.models,
                    "japanese" = "Japanese"),
              vcov = c("HC0"),
              cluster = "state")
+```
 
+```{r}
 sense.out.biden <- sensemakr(model = lm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = df),
           treatment = "apa.discrim.rona", 
           benchmark_covariates = "usborn",
@@ -237,9 +252,28 @@ sense.out.biden <- sensemakr(model = lm(biden ~ gendiscrim + apa.discrim.rona + 
           ky = 1:3, 
           q = 1)
 
-summary(sense.out.biden)
+biden.sense <- summary(sense.out.biden) %>%
+    flextable() %>%
+    set_table_properties(layout = "autofit", width = .8)
 
-lm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = df)
+biden.tmp <- tempfile(fileext = ".docx")
+
+# Create a docx file
+read_docx() %>% 
+  body_add_flextable(biden.sense) %>% 
+  print(target = biden.tmp)
+
+browseURL(biden.tmp)
+```
+
+```{r}
+test.out <- lm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = df)
+
+modelsummary(test.out, 
+             fmt = 3,
+             coef_omit = "Intercept",
+             statistic = c("p = {p.value}"),
+             stars = TRUE)
 ```
 
 ### Sub
@@ -276,7 +310,7 @@ modelsummary(sub.models,
              cluster = "state")
 ```
 
-## Subgroup summary 
+## Correlates
 
 ```{r}
 modelplot(lm(gendiscrim ~ usborn + edu + income + DEM + GOP + age + male, data = subset(df, wave == 1)),
@@ -290,7 +324,27 @@ modelplot(lm(gendiscrim ~ usborn + edu + income + DEM + GOP + age + male, data =
                    "GOP" = "Republican Party",
                    "age" = "Age",
                    "male" = "Male")) +
-    geom_vline(xintercept = 0, col = "red", linetype = "dashed")
+    geom_vline(xintercept = 0, col = "red", linetype = "dashed") +
+    theme_classic()
 
-ggsave(here("outputs", "correlate.png"))
+ggsave(here("outputs", "correlate_gen.png"))
+```
+
+```{r}
+modelplot(lm(apa.discrim.rona ~ usborn + edu + income + DEM + GOP + age + male + wave_fac, data = subset(df, wave != 1)),
+          coef_omit = "Intercept",
+          vcov = "HC2",
+          coef_rename = 
+                 c("usborn" = "US born",
+                   "edu" = "Education",
+                   "income" = "Income",
+                   "DEM" = "Democratic Party",
+                   "GOP" = "Republican Party",
+                   "age" = "Age",
+                   "male" = "Male",
+                   "wave_facNovember" = "Wave 3")) +
+    geom_vline(xintercept = 0, col = "red", linetype = "dashed") +
+    theme_classic()
+
+ggsave(here("outputs", "correlate_covid.png"))
 ```
