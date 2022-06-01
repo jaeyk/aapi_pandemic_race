@@ -32,6 +32,9 @@ pacman::p_load(tidyverse, # tidyverse
                mice)
 
 source(here("functions/utils.r"))
+
+# global theme 
+ggplot2::theme_set(theme_pubr())
 ```
 
 # Load files 

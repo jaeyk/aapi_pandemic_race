@@ -174,37 +174,37 @@ sub_group_mean <- function(df, x){
 
 plot_two_disc <- function(df) {
 
-df$proxy <- rep(subset(df, wave == 1)$gendiscrim, 3)
+    df$proxy <- rep(subset(df, wave == 1)$gendiscrim, 3)
 
-plot_w12 <- df %>%
-    filter(wave %in% c(1,2)) %>%
-    group_by(proxy) %>%
-    summarise(mean = mean(apa.discrim.rona, na.rm = TRUE),
-              ci_high = ci.high(apa.discrim.rona),
-              ci_low = ci.low(apa.discrim.rona)) %>%
-    mutate(group = 2)
+    plot_w12 <- df %>%
+        filter(wave %in% c(1,2)) %>%
+        group_by(proxy) %>%
+        summarise(mean = mean(apa.discrim.rona, na.rm = TRUE),
+                  ci_high = ci.high(apa.discrim.rona),
+                  ci_low = ci.low(apa.discrim.rona)) %>%
+        mutate(group = 2)
 
-plot_w13 <- df %>%
-    filter(wave %in% c(1,3)) %>%
-    group_by(proxy) %>%
-    summarise(mean = mean(apa.discrim.rona, na.rm = TRUE),
-              ci_high = ci.high(apa.discrim.rona),
-              ci_low = ci.low(apa.discrim.rona)) %>%
-    mutate(group = 3)
+    plot_w13 <- df %>%
+        filter(wave %in% c(1,3)) %>%
+        group_by(proxy) %>%
+        summarise(mean = mean(apa.discrim.rona, na.rm = TRUE),
+                  ci_high = ci.high(apa.discrim.rona),
+                  ci_low = ci.low(apa.discrim.rona)) %>%
+        mutate(group = 3)
 
-plot_w123 <- bind_rows(plot_w12, plot_w13)
+    plot_w123 <- bind_rows(plot_w12, plot_w13)
 
-plot_w123 %>%
-    ggplot(aes(x = factor(proxy), y = mean,
-               ymax = mean + ci_high,
-               ymin = mean - ci_low,
-               col = factor(group))) +
-    geom_pointrange() +
-    ggrepel::geom_text_repel(aes(label = round(mean, 2))) +
-    labs(x = "Response to general discrimination Q in Wave 1",
-         y = "Average response to COVID-19 discrimination Q in Wave 2 and 3",
-         col = "Wave") +
-    geom_hline(yintercept = 0.5,  linetype = 'dotted', col = 'red', size = 1)
+    plot_w123 %>%
+        ggplot(aes(x = factor(proxy), y = mean,
+                   ymax = mean + ci_high,
+                   ymin = mean - ci_low,
+                   col = factor(group))) +
+        geom_pointrange() +
+        ggrepel::geom_text_repel(aes(label = round(mean, 2))) +
+        labs(x = "Response to general discrimination Q in Wave 1",
+             y = "Average response to COVID-19 discrimination Q in Wave 2 and 3",
+             col = "Wave") +
+        geom_hline(yintercept = 0.5,  linetype = 'dotted', col = 'red', size = 1)
 }
 
 plot_two_disc_sub <- function(df) {

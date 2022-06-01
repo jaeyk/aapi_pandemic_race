@@ -30,13 +30,13 @@ source(here("functions/utils.r"))
 ```{r message = FALSE}
 # Check the file names
 # list.files(here("raw_data"))
-w1 <- read_csv(here("raw_data/wave1.csv"))[-c(1:2),]
-w2 <- read_csv(here("raw_data/wave2.csv"))[-c(1:2),]
-w3 <- readxl::read_xls(here("raw_data/wave3_alt.xls"))[-c(1:2),]
+w1 <- read_csv(here("raw_data/wave1_raw.csv"))[-c(1:2),]
+w2 <- read_csv(here("raw_data/wave2_raw.csv"))[-c(1:2),]
+w3 <- read_xls(here("raw_data/w3_numeric_jul10.xls"))[-c(1:2),]
 ```
 
 ```{r message = FALSE}
-codebook <- read_csv(here("raw_data/codebook_alt.csv"))
+codebook <- read_csv(here("raw_data/codebook_jul10.csv"))
 
 # Check dimensions 
 ncol(w1) == nrow(subset(codebook, wave == "w1"))
@@ -233,6 +233,8 @@ completed_df <- fill(completed_df, usborn)
 # 1992 obs and 105 variables 
 dim(completed_df)
 
+if (!dir.exists(here("processed_data"))) dir.create(here("processed_data"))
+
 write.csv(completed_df, here("processed_data/panel_data.csv"))
 ```
 
@@ -280,7 +282,6 @@ df23 <- subset(df, wave != 1)
 ```
 
 ```{r}
-unique(df$party.id)
 # Party ID
 df1$party.id <- recode_party_w1(df1$party.id)
 df23$party.id <- recode_party_w23(df23$party.id)
@@ -351,8 +352,9 @@ df$income <- rep(subset(df, wave == 1)$income, 3)
 df$state <- rep(subset(df, wave == 1)$state, 3)
 df$natorigin <- rep(subset(df, wave == 1)$natorigin, 3)
 
-df$korean <- if_else(df$natorigin == 4, 1, 0)
-df$japanese <- if_else(df$natorigin == 7, 1, 0)
+df$chinese <- if_else(df$natorigin == 1, 1, 0) %>% factor()
+df$korean <- if_else(df$natorigin == 4, 1, 0) %>% factor()
+df$japanese <- if_else(df$natorigin == 7, 1, 0) %>% factor()
 ```
 
 ```{r}
@@ -361,8 +363,8 @@ df$yearborn <- as.numeric(rep(subset(df, wave == 1)$yearborn, 3))
 df$age <- 2021 - df$yearborn
 df$age <- ifelse(df$age > 0 & df$age < 100, df$age, NA)
 
-df$ronaunfair <- if_else(df$ronaunfair == 1, 1, 0)
-df$rona.apa.mistreat <- if_else(df$rona.apa.mistreat == 1, 1, 0)
+df$ronaunfair <- ifelse(df$ronaunfair == 1, 1, 0)
+df$rona.apa.mistreat <- ifelse(df$rona.apa.mistreat == 1, 1, 0)
 ```
 
 ```{r}
@@ -396,10 +398,6 @@ df$state <- factor(df$state)
 
 subset(df, wave == 2)$gendiscrim[1:5]
 subset(df, wave == 2)$X2020likelyvote[1:5]
-
-df %>%
-    filter(wave == 1) %>%
-    tabyl(party.id)
 ```
 
 ```{r}

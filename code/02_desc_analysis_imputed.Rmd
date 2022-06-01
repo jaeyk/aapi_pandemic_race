@@ -59,7 +59,7 @@ df <- read.csv(here("processed_data", "panel_data_cleaned.csv"))
 ```{r}
 df_na_sum <- df %>%
   filter(wave != 1) %>%
-  select(X2020likelyvote, biden, gendiscrim, apa.discrim.rona, usborn, edu, income, DEM, GOP, age, male, wave, korean, japanese) %>%
+  select(X2020likelyvote, biden, gendiscrim, apa.discrim.rona, usborn, edu, income, DEM, GOP, age, male, wave, korean, chinese) %>%
   map_dfr(~is.na(.) %>% mean())
 
 df_na_sum
@@ -69,7 +69,7 @@ df_na_sum
 imp <- mice(
   df %>%
     filter(wave != 1) %>%
-    select(gendiscrim, apa.discrim.rona, usborn, edu, income, DEM, GOP, age, male, wave, korean, japanese),
+    select(gendiscrim, apa.discrim.rona, usborn, edu, income, DEM, GOP, age, male, wave, korean, chinese),
     seed = 1234, # for reproducibility
     m = 5, # the number of imputations
     maxit = 10, # the max number of iterations 
@@ -127,7 +127,7 @@ models <- list(
 
 "Model 2" = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave), data = df),
 
-"Model 3" = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = df))
+"Model 3" = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + chinese, data = df))
 
 modelsummary(models,
              fmt = 3,
@@ -147,13 +147,13 @@ modelsummary(models,
                    "male" = "Male",
                    "factor(wave)3" = "Wave3",
                    "korean" = "Korean",
-                   "japanese" = "Japanese"),
+                   "chinese" = "Chinese"),
              vcov = "HC2",
              cluster = "state")
 ```
 
 ```{r}
-sense.out <- sensemakr(model = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = df),
+sense.out <- sensemakr(model = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + chinese, data = df),
           treatment = "apa.discrim.rona", 
           benchmark_covariates = "usborn",
           kd = 1:3, 
@@ -178,11 +178,11 @@ browseURL(main.tmp)
 
 ```{r}
 sub.models <- list(
-"High Discrimination Pre-COVID" = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = subset(df, prior == "High")),
+"High Discrimination Pre-COVID" = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + chinese, data = subset(df, prior == "High")),
             
-"Middle Discrimination Pre-COVID" = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = subset(df, prior == "Middle")),
+"Middle Discrimination Pre-COVID" = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + chinese, data = subset(df, prior == "Middle")),
             
-"Low Discrimination Pre-COVID" = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = subset(df, prior == "Low")))
+"Low Discrimination Pre-COVID" = lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + chinese, data = subset(df, prior == "Low")))
 
 modelsummary(sub.models,
              fmt = 3,
@@ -202,7 +202,7 @@ modelsummary(sub.models,
                    "male" = "Male",
                    "factor(wave)3" = "Wave3",
                    "korean" = "Korean",
-                   "japanese" = "Japanese"),
+                   "chinese" = "Chinese"),
              vcov = "HC2",
              cluster = "state")
 ```
@@ -218,7 +218,7 @@ biden.models <- list(
 
 "Model 2" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave), data = df, family = binomial),
 
-"Model 3" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = df, family = binomial))
+"Model 3" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + chinese, data = df, family = binomial))
 
 modelsummary(biden.models,
              exponentiate = TRUE,
@@ -239,13 +239,13 @@ modelsummary(biden.models,
                    "male" = "Male",
                    "factor(wave)3" = "Wave3",
                    "korean" = "Korean",
-                   "japanese" = "Japanese"),
+                   "chinese" = "Chinese"),
              vcov = c("HC0"),
              cluster = "state")
 ```
 
 ```{r}
-sense.out.biden <- sensemakr(model = lm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = df),
+sense.out.biden <- sensemakr(model = lm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + chinese, data = df),
           treatment = "apa.discrim.rona", 
           benchmark_covariates = "usborn",
           kd = 1:3, 
@@ -267,7 +267,7 @@ browseURL(biden.tmp)
 ```
 
 ```{r}
-test.out <- lm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = df)
+test.out <- lm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + chinese, data = df)
 
 modelsummary(test.out, 
              fmt = 3,
@@ -280,11 +280,11 @@ modelsummary(test.out,
 
 ```{r}
 sub.models <- list(
-"High Discrimination Pre-COVID" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = subset(df, prior == "High"), family = binomial),
+"High Discrimination Pre-COVID" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + chinese, data = subset(df, prior == "High"), family = binomial),
             
-"Middle Discrimination Pre-COVID" = glm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = subset(df, prior == "Middle"), family = binomial),
+"Middle Discrimination Pre-COVID" = glm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + chinese, data = subset(df, prior == "Middle"), family = binomial),
             
-"Low Discrimination Pre-COVID" = glm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = subset(df, prior == "Low"), family = binomial))
+"Low Discrimination Pre-COVID" = glm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + chinese, data = subset(df, prior == "Low"), family = binomial))
 
 modelsummary(sub.models,
              exponentiate = TRUE,
@@ -305,7 +305,7 @@ modelsummary(sub.models,
                    "male" = "Male",
                    "factor(wave)3" = "Wave3",
                    "korean" = "Korean",
-                   "japanese" = "Japanese"),
+                   "chinese" = "Chinese"),
              vcov = "HC0",
              cluster = "state")
 ```
