@@ -36,11 +36,14 @@ pacman::p_load(tidyverse, # tidyverse
                janitor,
                modelsummary, 
                flextable,
-               officer)
+               officer,
+               extrafont,
+               gt)
 
 source(here("functions/utils.r"))
+source(here("functions/theme.R"))
 
-ggplot2::theme_set(ggpubr::theme_pubr())
+ggplot2::theme_set(theme_bw() + my_theme)
 
 # no scientific notation
 options(scipen = 999)
@@ -102,10 +105,14 @@ imputed$age
 ## Likely to vote 
 
 ```{r}
+# rescale the discrimination perception variables
+df$apa.discrim.rona <- df$apa.discrim.rona - .5
+df$gendiscrim <- df$gendiscrim - .5
+
 df$proxy <- rep(subset(df, wave == 1)$gendiscrim, 3)
-df$prior[df$proxy == 0.5] <- "Middle"
-df$prior[df$proxy < 0.5] <- "Low"
-df$prior[df$proxy > 0.5] <- "High"
+df$prior[df$proxy == 0] <- "Middle"
+df$prior[df$proxy < 0] <- "Low"
+df$prior[df$proxy > 0] <- "High"
 ```
 
 ```{r}
@@ -132,20 +139,20 @@ models <- list(
 modelsummary(models,
              fmt = 3,
              coef_omit = "Intercept",
-             statistic = c("p = {p.value}"),
+             #statistic = c("p = {p.value}"),
              stars = TRUE, 
              output = here("outputs", "reg_tb1.docx"),
              coef_rename = 
-                 c("gendiscrim" = "General discrimination",
+                c("gendiscrim" = "General discrimination",
                    "apa.discrim.rona" = "COVID-19 discrimination",
                    "usborn" = "US born",
                    "edu" = "Education",
                    "income" = "Income",
-                   "DEM" = "DEM",
-                   "GOP" = "GOP",
+                   "DEM" = "Democratic Party",
+                   "GOP" = "Republican Party",
                    "age" = "Age",
                    "male" = "Male",
-                   "factor(wave)3" = "Wave3",
+                   "factor(wave)3" = "Wave 3",
                    "korean" = "Korean",
                    "chinese" = "Chinese"),
              vcov = "HC2",
@@ -187,26 +194,48 @@ sub.models <- list(
 modelsummary(sub.models,
              fmt = 3,
              coef_omit = "Intercept",
-             statistic = c("p = {p.value}"),
+             #statistic = c("p = {p.value}"),
              stars = TRUE, 
              output = here("outputs", "reg_tb_sub1.docx"),
              coef_rename = 
-                 c("gendiscrim" = "General discrimination",
+                c("gendiscrim" = "General discrimination",
                    "apa.discrim.rona" = "COVID-19 discrimination",
                    "usborn" = "US born",
                    "edu" = "Education",
                    "income" = "Income",
-                   "DEM" = "DEM",
-                   "GOP" = "GOP",
+                   "DEM" = "Democratic Party",
+                   "GOP" = "Republican Party",
                    "age" = "Age",
                    "male" = "Male",
-                   "factor(wave)3" = "Wave3",
+                   "factor(wave)3" = "Wave 3",
                    "korean" = "Korean",
                    "chinese" = "Chinese"),
              vcov = "HC2",
              cluster = "state")
 ```
 
+```{r}
+sense_series <- c(sub.models[[2]] %>% 
+    tidy() %>% 
+    filter(term == "apa.discrim.rona") %>%
+    select(estimate) %>%
+    pull(estimate),
+
+run_sense(sub.models[[2]]) %>% 
+    tibble() %>%
+    select(contains("Adjusted Estimate")) %>%
+    pull(`Adjusted Estimate`))
+
+bench <- sub.models[[2]] %>% 
+    tidy() %>% 
+    filter(term == "DEM") %>%
+    select(estimate) %>%
+    pull(estimate)
+
+1 - (sense_series[1] - sense_series[4])/sense_series[1]
+bench
+1 - (sense_series[1] - sense_series[4])/sense_series[1] > bench
+```
 ## Biden candidacy
 
 ### Main 
@@ -219,25 +248,27 @@ biden.models <- list(
 "Model 2" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave), data = df, family = binomial),
 
 "Model 3" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + chinese, data = df, family = binomial))
+```
 
+```{r}
 modelsummary(biden.models,
              exponentiate = TRUE,
              fmt = 3,
              coef_omit = "Intercept",
-             statistic = c("p = {p.value}"),
+             #statistic = c("p = {p.value}"),
              stars = TRUE, 
              output = here("outputs", "reg_tb2.docx"),
              coef_rename = 
-                 c("gendiscrim" = "General discrimination",
+                c("gendiscrim" = "General discrimination",
                    "apa.discrim.rona" = "COVID-19 discrimination",
                    "usborn" = "US born",
                    "edu" = "Education",
                    "income" = "Income",
-                   "DEM" = "DEM",
-                   "GOP" = "GOP",
+                   "DEM" = "Democratic Party",
+                   "GOP" = "Republican Party",
                    "age" = "Age",
                    "male" = "Male",
-                   "factor(wave)3" = "Wave3",
+                   "factor(wave)3" = "Wave 3",
                    "korean" = "Korean",
                    "chinese" = "Chinese"),
              vcov = c("HC0"),
@@ -272,7 +303,7 @@ test.out <- lm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + D
 modelsummary(test.out, 
              fmt = 3,
              coef_omit = "Intercept",
-             statistic = c("p = {p.value}"),
+             #statistic = c("p = {p.value}"),
              stars = TRUE)
 ```
 
@@ -282,15 +313,15 @@ modelsummary(test.out,
 sub.models <- list(
 "High Discrimination Pre-COVID" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + chinese, data = subset(df, prior == "High"), family = binomial),
             
-"Middle Discrimination Pre-COVID" = glm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + chinese, data = subset(df, prior == "Middle"), family = binomial),
+"Middle Discrimination Pre-COVID" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + chinese, data = subset(df, prior == "Middle"), family = binomial),
             
-"Low Discrimination Pre-COVID" = glm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + chinese, data = subset(df, prior == "Low"), family = binomial))
+"Low Discrimination Pre-COVID" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + chinese, data = subset(df, prior == "Low"), family = binomial))
 
 modelsummary(sub.models,
              exponentiate = TRUE,
              fmt = 3,
              coef_omit = "Intercept",
-             statistic = c("p = {p.value}"),
+             #statistic = c("p = {p.value}"),
              stars = TRUE, 
              output = here("outputs", "reg_tb_sub2.docx"),
              coef_rename = 
@@ -299,15 +330,40 @@ modelsummary(sub.models,
                    "usborn" = "US born",
                    "edu" = "Education",
                    "income" = "Income",
-                   "DEM" = "DEM",
-                   "GOP" = "GOP",
+                   "DEM" = "Democratic Party",
+                   "GOP" = "Republican Party",
                    "age" = "Age",
                    "male" = "Male",
-                   "factor(wave)3" = "Wave3",
+                   "factor(wave)3" = "Wave 3",
                    "korean" = "Korean",
                    "chinese" = "Chinese"),
              vcov = "HC0",
              cluster = "state")
+```
+
+```{r}
+model <- lm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + chinese, data = subset(df, prior == "Middle"))
+
+sense_series <- c(model %>% 
+    tidy() %>% 
+    filter(term == "apa.discrim.rona") %>%
+    select(estimate) %>%
+    pull(estimate),
+
+run_sense(model) %>% 
+    tibble() %>%
+    select(contains("Adjusted Estimate")) %>%
+    pull(`Adjusted Estimate`))
+
+bench <- model %>% 
+    tidy() %>% 
+    filter(term == "DEM") %>%
+    select(estimate) %>%
+    pull(estimate)
+
+1 - (sense_series[1] - sense_series[4])/sense_series[1]
+bench
+1 - (sense_series[1] - sense_series[4])/sense_series[1] > bench
 ```
 
 ## Correlates

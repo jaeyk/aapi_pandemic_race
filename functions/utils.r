@@ -301,3 +301,18 @@ cal_glm <- function(x) {
 
     return(model.outs)
 }
+
+# run sensitivity analysis
+
+run_sense <- function(model) {
+
+    sense.out <- sensemakr(model = model,
+                           treatment = "apa.discrim.rona",
+                           benchmark_covariates = "usborn",
+                           kd = 1:3,
+                           ky = 1:3,
+                           q = 1)
+
+    out <- sense.out %>%
+        summary()
+}
