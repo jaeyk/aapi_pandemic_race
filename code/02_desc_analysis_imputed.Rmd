@@ -106,8 +106,8 @@ imputed$age
 
 ```{r}
 # rescale the discrimination perception variables
-df$apa.discrim.rona <- df$apa.discrim.rona - .5
-df$gendiscrim <- df$gendiscrim - .5
+#df$apa.discrim.rona <- df$apa.discrim.rona - .5
+#df$gendiscrim <- df$gendiscrim - .5
 
 df$proxy <- rep(subset(df, wave == 1)$gendiscrim, 3)
 df$prior[df$proxy == 0] <- "Middle"
@@ -235,6 +235,10 @@ bench <- sub.models[[2]] %>%
 1 - (sense_series[1] - sense_series[4])/sense_series[1]
 bench
 1 - (sense_series[1] - sense_series[4])/sense_series[1] > bench
+
+run_sense(sub.models[[2]]) %>% 
+    tibble() %>%
+    gt()
 ```
 ## Biden candidacy
 
@@ -364,6 +368,10 @@ bench <- model %>%
 1 - (sense_series[1] - sense_series[4])/sense_series[1]
 bench
 1 - (sense_series[1] - sense_series[4])/sense_series[1] > bench
+
+run_sense(model) %>% 
+    tibble() %>%
+    gt()
 ```
 
 ## Correlates
