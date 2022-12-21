@@ -13,7 +13,8 @@ output:
 if (!require(pacman)) install.packages("pacman")
 
 pacman::p_load(tidyverse, # tidyverse 
-               panelr, # panel data analysis
+               plm, # panel data analysis
+               clubSandwich, # robust SEs
                here, # computational reproducibility 
                glue, # gluing objects and strings 
                tidylog, # logging analysis
@@ -38,12 +39,15 @@ pacman::p_load(tidyverse, # tidyverse
                flextable,
                officer,
                extrafont,
-               gt)
+               gt,
+               bootstrap,
+               lme4,
+               clipr)
 
 source(here("functions/utils.r"))
 source(here("functions/theme.R"))
 
-ggplot2::theme_set(theme_bw() + my_theme)
+ggplot2::theme_set(theme_bw())
 
 # no scientific notation
 options(scipen = 999)
@@ -52,12 +56,38 @@ options(scipen = 999)
 # Load files 
 
 ```{r message = FALSE}
-df <- read.csv(here("processed_data", "panel_data_cleaned.csv"))
+df <- read_csv(here("processed_data", "panel_data_cleaned.csv"))[,-c(1:2)]
 
 df2 <- subset(df, wave == 2)
+
+# Add independent and non partisans
+df$independent <- ifelse(df$party.id == "Independent", 1, 0)
+
+df$indi_other <- ifelse(df$party.id %in% c("Democrat", "Republican") | is.na(df$party.id), 0, 1)
 ```
 
 # Summarize by group 
+
+## Different partisans
+
+```{r}
+dodge <- position_dodge(width=0.9)
+
+party1 <- df %>%
+    group_by(wave, party.id) %>%
+    count() %>%
+    ggplot(aes(x = wave, y = n, fill = party.id)) +
+    geom_col(position = dodge)
+
+party2 <- df %>%
+    mutate(party.id = if_else(party.id %in% c("Democrat", "Republican") | is.na(party.id), party.id, "Independent or Other")) %>%
+    group_by(wave, party.id) %>%
+    count() %>%
+    ggplot(aes(x = wave, y = n, fill = party.id)) +
+    geom_col(position = dodge)
+
+party1 / party2 + plot_annotation(tag_levels = )
+```
 
 ```{r}
 var.list <- names(df)[str_detect(names(df), "disc")][c(1, 3)]
@@ -76,8 +106,6 @@ group_sum <- purrr::map_dfr(seq(var.list), group_mean) %>%
 ## Discrimination perception 
 
 ```{r}
-dodge <- position_dodge(width=0.9)
-
 group_sum %>%
     filter(str_detect(variable, "disc")) %>%
     mutate(variable = recode(variable, 
@@ -87,18 +115,20 @@ group_sum %>%
     ggplot(aes(x = glue("{factor(wave_fac)} 2020"), y = mean,
                ymax = mean + ci_high, 
                ymin = mean - ci_low)) +
-        geom_errorbar(position = dodge, width = 0.25) +
+        geom_errorbar() +
         geom_col(alpha = 0.5) +
-        ggrepel::geom_text_repel(aes(label = glue("{round(mean, 3)*100}%"), col = "red")) +
+        #ggrepel::geom_text_repel(aes(label = glue("{round(mean, 3)*100}%", position = dodge), width = 0.25, col = "red")) +
         facet_wrap(~variable) +
         labs(title = "Changes in discrimination perception",
             x = "", y = "Average response") +
-        #geom_hline(yintercept = 0.5,  linetype = 'dotted', col = 'red', size = 1) +
-        scale_y_continuous(label = scales::percent) +
+        geom_hline(yintercept = 0,  linetype = 'dotted', col = 'red', size = 1) +
         theme(legend.position = "none")
 ggsave(here("outputs", "disc.perception.png"), 
        width = 10, 
-       height = 7)
+       height = 7) +
+  ylim(c(-.5, .5))
+
+ggsave(here("outputs", "diff.png"))
 ```
 
 ```{r}
@@ -109,7 +139,8 @@ gen_density <- df %>%
     labs(x = "Response",
          y = "Density",
          title = "General discrimination") +
-    geom_vline(xintercept = 0.5,  linetype = 'dotted', col = 'red', size = 1)
+    geom_vline(xintercept = 0,  linetype = 'dotted', col = 'red', size = 1)
+
 rona_density <- df %>%
   ggplot(aes(apa.discrim.rona)) +
     geom_density() +
@@ -117,15 +148,18 @@ rona_density <- df %>%
     labs(x = "Response",
          y = "Density",
          title = "COVID-19 discrimination") +
-    geom_vline(xintercept = 0.5,  linetype = 'dotted', col = 'red', size = 1)
+    geom_vline(xintercept = 0,  linetype = 'dotted', col = 'red', size = 1)
+
 (gen_density / rona_density) + plot_annotation(tag_levels = "A")
-ggsave(here("outputs", "density.png"), width = 10)
+
+ggsave(here("outputs", "density.png"))
 ```
 
 ```{r}
-
 df$proxy <- rep(subset(df, wave == 1)$gendiscrim, 3)
+```
 
+```{r}
 plot_w12 <- df %>%
     filter(wave %in% c(1,2)) %>%
     group_by(proxy) %>%
@@ -133,6 +167,7 @@ plot_w12 <- df %>%
                   ci_high = ci.high(apa.discrim.rona),
                   ci_low = ci.low(apa.discrim.rona)) %>%
     mutate(group = 2)
+
 plot_w13 <- df %>%
     filter(wave %in% c(1,3)) %>%
     group_by(proxy) %>%
@@ -140,27 +175,29 @@ plot_w13 <- df %>%
                   ci_high = ci.high(apa.discrim.rona),
                   ci_low = ci.low(apa.discrim.rona)) %>%
     mutate(group = 3)
+
 plot_w123 <- bind_rows(plot_w12, plot_w13)
 ```
+
 
 ```{r}
 plot_w123 %>%
     ggplot(aes(x = factor(proxy), y = mean,
                ymax = mean + ci_high, 
-               ymin = mean - ci_low)) +
-        #geom_pointrange() +
-        geom_errorbar(position = dodge, width = 0.25) +
-        geom_col(alpha = 0.5) +
-        ggrepel::geom_text_repel(aes(label = glue("{round(mean, 3)*100}%"), col = "red")) +
-        labs(x = "Response to general discrimination Q in Wave 1", 
-             y = "Average response to COVID-19 discrimination Q in Wave 2 and 3",
+               ymin = mean - ci_low,
+               col = factor(group))) +
+        geom_pointrange() +
+        #ggrepel::geom_text_repel(aes(label = round(mean, 2), y = mean), size = 5, vjust = -.5) +
+        labs(x = "Response to general discrimination Q in W1", 
+             y = "Average response to COVID-19 discrimination Q in W2 & W3",
              col = "Wave") +
-        #geom_hline(yintercept = 0.5,  linetype = 'dotted', col = 'red', size = 1) +
-        facet_wrap(~group) +
+        geom_hline(yintercept = 0,  linetype = 'dotted', col = 'red', size = 1) +
+#        facet_wrap(~group) +
         #scale_fill_brewer(palette = "Set1") +
-        scale_y_continuous(labels = scales::percent) +
-        theme(legend.position =  "down")
-ggsave(here("outputs", "disc.wave.png"), height = 9, width = 12)
+        #theme(legend.position =  "down") +
+  ylim(c(-.5, .5)) 
+
+ggsave(here("outputs", "disc.wave.png"), height = 6)
 ```
 
 ## Affect 
@@ -239,6 +276,7 @@ lost_job_pct <- sum(!is.na(df %>%
   filter(wave == 2) %>% 
   pull(lostjob)))/(df %>% filter(wave == 2) %>% nrow()) %>%
   round(2)
+  
 round(lost_job_pct, 4) * 100 
 ```
 
@@ -274,23 +312,47 @@ modelsummary(list(`Hardship` = mod1, `Experience` = mod2, `Witnesing` = mod3),
              output = here("outputs", "reg_measure.docx")) 
 ```
 
+## Party ID
+
+```{r}
+dodge <- position_dodge(width=0.9)
+
+group_sum %>%
+    filter(variable %in% c("DEM", "GOP")) %>%
+    ggplot(aes(x = glue("{factor(wave_fac)} 2020"), y = mean,
+               ymax = mean + ci_high, 
+               ymin = mean - ci_low)) +
+        geom_errorbar() +
+        geom_col(alpha = 0.5) +
+        #ggrepel::geom_text_repel(aes(label = glue("{round(mean, 3)*100}%", position = dodge), width = 0.25, col = "red")) +
+        facet_wrap(~variable) +
+        labs(title = "Changes in discrimination perception",
+            x = "", y = "Average response") +
+        geom_hline(yintercept = 0,  linetype = 'dotted', col = 'red', size = 1) +
+        theme(legend.position = "none")
+ggsave(here("outputs", "disc.perception.png"), 
+       width = 10, 
+       height = 7) +
+  ylim(c(-.5, .5))
+
+ggsave(here("outputs", "party_diff.png"))
+```
+
 # Regression analysis
 
 ## Imputation
 
 ```{r}
 df_na_sum <- df %>%
-  filter(wave != 1) %>%
+  #filter(wave != 1) %>%
   select(X2020likelyvote, biden, gendiscrim, apa.discrim.rona, usborn, edu, income, DEM, GOP, age, male, wave, korean, chinese) %>%
   map_dfr(~is.na(.) %>% mean())
-
-df_na_sum
 ```
 
 ```{r}
 imp <- mice(
   df %>%
-    filter(wave != 1) %>%
+   #filter(wave != 1) %>%
     select(gendiscrim, apa.discrim.rona, usborn, edu, income, DEM, GOP, age, male, wave, korean, chinese),
     seed = 1234, # for reproducibility
     m = 5, # the number of imputations
@@ -305,20 +367,78 @@ imputed <- mice::complete(imp)
 
 ```{r}
 # Replace with the imputed values 
+
+
 df$apa.discrim.rona[665:nrow(df)] <- 
 imputed$apa.discrim.rona
 
-df$gendiscrim[665:nrow(df)] <- 
+df$gendiscrim <- 
 imputed$gendiscrim
 
-df$DEM[665:nrow(df)] <- 
+df$DEM <- 
 imputed$DEM
 
-df$GOP[665:nrow(df)] <- 
+df$GOP <- 
 imputed$GOP
 
-df$age[665:nrow(df)] <- 
+df$age <- 
 imputed$age
+
+df$X2020likelyvote
+```
+
+## Panel data analysis
+
+```{r}
+df13 <- subset(df, wave %in% c(1,3))
+
+df12 <- subset(df, wave %in% c(1,2))
+
+panel_mods12 <- list(
+
+    "DEM FE" = plm(DEM ~ gendiscrim + usborn + edu + income + age + male + chinese + korean, data=df12, index = c("pid", "wave"), model = "within"),  #fixed model
+
+    "DEM RE" = plm(DEM ~ gendiscrim + usborn + edu + income + age + male + chinese + korean, data=df12, index = c("pid", "wave"), model = "random"),  #random model
+
+    "GOP FE" = plm(GOP ~ gendiscrim + usborn + edu + income + age + male + chinese + korean, data=df12, index = c("pid", "wave"), model = "within"),  #fixed model
+
+    "GOP RE" = plm(GOP ~ gendiscrim + usborn + edu + income + age + male + chinese + korean, data=df12, index = c("pid", "wave"), model = "random"),  #random model
+
+    "Independent FE" = plm(independent ~ gendiscrim + usborn + edu + income + age + male + chinese + korean, data=df12, index = c("pid", "wave"), model = "within"),  #fixed model
+
+    "Independent RE" = plm(independent ~ gendiscrim + usborn + edu + income + age + male + chinese + korean, data=df12, index = c("pid", "wave"), model = "random")  #random model
+
+    )
+```
+
+```{r}
+panel_mods13 <- list(
+
+    "DEM FE" = plm(DEM ~ gendiscrim + usborn + edu + income + age + male + chinese + korean, data=df13, index = c("pid", "wave"), model = "within"),  #fixed model
+
+    "DEM RE" = plm(DEM ~ gendiscrim + usborn + edu + income + age + male + chinese + korean, data=df13, index = c("pid", "wave"), model = "random"),  #random model
+
+    "GOP FE" = plm(GOP ~ gendiscrim + usborn + edu + income + age + male + chinese + korean, data=df13, index = c("pid", "wave"), model = "within"),  #fixed model
+
+    "GOP RE" = plm(GOP ~ gendiscrim + usborn + edu + income + age + male + chinese + korean, data=df13, index = c("pid", "wave"), model = "random"),  #random model
+
+    "Independent FE" = plm(independent ~ gendiscrim + usborn + edu + income + age + male + chinese + korean, data=df13, index = c("pid", "wave"), model = "within"),  #fixed model
+
+    "Independent RE" = plm(independent ~ gendiscrim + usborn + edu + income + age + male + chinese + korean, data=df13, index = c("pid", "wave"), model = "random")  #random model
+
+    )
+
+table_mods12 <- modelsummary(panel_mods12, estimate = "p.value", output = "gt", vcov = "robust")
+
+table_mods13 <- modelsummary(panel_mods, estimate = "p.value", output = "gt", vcov = "robust")
+```
+
+```{r}
+fe.mod <- plm(independent ~ gendiscrim + apa.discrim.rona + usborn + edu + income + age + male, data=df, index = c("pid", "wave"), model = "within")  #fixed model
+
+re.mod <- plm(independent ~ gendiscrim + apa.discrim.rona + usborn + edu + income + age + male, data=df, index = c("pid", "wave"), model = "random")  #random model
+
+phtest(fe.mod, re.mod) #Hausman test
 ```
 
 ## Likely to vote 
@@ -459,7 +579,19 @@ run_sense(sub.models[[2]]) %>%
     tibble() %>%
     gt()
 ```
+
 ## Biden candidacy
+
+### Partisanship 
+
+```{r}
+# partisan biden support 
+df %>%
+  filter(wave == 3) %>%
+  filter(!is.na(party.id)) %>%
+  group_by(party.id) %>%
+  summarize(mean = mean(biden, na.rm = T))
+```
 
 ### Main 
 

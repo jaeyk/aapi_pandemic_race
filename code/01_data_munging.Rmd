@@ -75,9 +75,11 @@ w3_copy <- w3
 # Add missing columns between w1 and w2 to w1
 w1_copy <- add_miss_cols(w1_copy, w2_copy)
 w2_copy <- add_miss_cols(w2_copy, w1_copy)
+
 # Add missing columns between w3 and w2 to w3
 w3_copy <- add_miss_cols(w3_copy, w2_copy)
 w2_copy <- add_miss_cols(w2_copy, w3_copy)
+
 # Add missing columns between w3 and w1 to w3
 w3_copy <- add_miss_cols(w3_copy, w1_copy)
 w1_copy <- add_miss_cols(w1_copy, w3_copy)
@@ -126,6 +128,9 @@ attr_rate <- function(pre, post) {
 glue("The attrition rate between w1 and w2 is: {attr_rate({nrow(w1)}, nrow(w12)) * 100}%")
 glue("The attrition rate between w2 and w3 is: {attr_rate(nrow(w12), nrow(w13)) * 100}%")
 ```
+
+The attrition rate between w1 and w2 is: 33%
+The attrition rate between w2 and w3 is: 38%
 
 ## Find common questions 
 
@@ -238,17 +243,11 @@ if (!dir.exists(here("processed_data"))) dir.create(here("processed_data"))
 write.csv(completed_df, here("processed_data/panel_data.csv"))
 ```
 
-```{r}
-completed_df <- read.csv(here("processed_data/panel_data.csv"))
-```
-
 # Munging
 
-Make a copy 
-
+```{r}
 ## Replace with NA
 
-```{r}
 mean(is.na(subset(completed_df, wave != 1)$apa.discrim.rona))
 
 df <- completed_df
@@ -347,8 +346,6 @@ df$all_asian_disc <- if_else(df$apa.discrim.who == 2, 1, 0)
 
 # SES
 df$edu <- rep(subset(df, wave == 1)$edu, 3)
-df$income <- rep(subset(df, wave == 1)$income, 3)
-
 df$state <- rep(subset(df, wave == 1)$state, 3)
 df$natorigin <- rep(subset(df, wave == 1)$natorigin, 3)
 
@@ -403,7 +400,7 @@ subset(df, wave == 2)$X2020likelyvote[1:5]
 ```{r}
 # Add factor version wave variable
 df$wave_fac <- recode(as.character(df$wave), 
-                  "1" = "February",
+       "1" = "February",
        "2" = "May",
        "3" = "November") 
 
@@ -463,6 +460,7 @@ save_as_docx(sum_table, path = here("outputs", "summary_table.docx"))
 
 nrow(df)/3
 ```
+
 # Export data 
 
 ```{r}

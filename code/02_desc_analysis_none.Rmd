@@ -52,29 +52,6 @@ options(scipen = 999)
 df <- read.csv(here("processed_data", "panel_data_cleaned.csv"))[,-c(1:2)]
 ```
 
-# Summarize by group 
-
-```{r}
-var.list <- names(df)[str_detect(names(df), "disc")][c(1, 3)]
-
-# rescale the discrimination perception variables
-df$apa.discrim.rona <- df$apa.discrim.rona - .5
-df$gendiscrim <- df$gendiscrim - .5
-
-t.test(subset(df, wave == 2)$apa.discrim.rona, subset(df, wave == 3)$apa.discrim.rona) %>%
-    tidy()
-
-# check the min and max values
-min(df$apa.discrim.rona, na.rm = T) ; max(df$apa.discrim.rona, na.rm = T)
-min(df$gendiscrim, na.rm = T) ; max(df$gendiscrim, na.rm = T)
-
-var.list <- c(var.list, c("linkedfate", "idimport", "asnpride", "rona.behav.sneeze", "rona.behav.language", "rona.behav.walk", "rona.behav.transit", "rona.behav.other", "rona.behav.nochange", "rona.index", "X2020likelyvote", "biden", "DEM", "DEM.strong", "GOP", "GOP.strong", "ronaunfair", "ronaunfairasian", "rona.apa.mistreat", "apa.responsible", "apa.have.rona", "apa.harassment", "whiteaffect", "blackaffect", "latinoaffect", "asianaffect"))
-
-group_sum <- purrr::map_dfr(seq(var.list), group_mean) %>%
-    mutate(variable = rep(var.list, each = 3)) %>%
-    filter(!is.na(mean)) 
-```
-
 # Regression analysis
 
 ## Likely to vote 
@@ -85,9 +62,9 @@ group_sum <- purrr::map_dfr(seq(var.list), group_mean) %>%
 #df$gendiscrim <- df$gendiscrim - .5
 
 df$proxy <- rep(subset(df, wave == 1)$gendiscrim, 3)
-df$prior[df$proxy == 0] <- "Middle"
-df$prior[df$proxy < 0] <- "Low"
-df$prior[df$proxy > 0] <- "High"
+df$prior[df$proxy == 0.5] <- "Middle"
+df$prior[df$proxy < 0.5] <- "Low"
+df$prior[df$proxy > 0.5] <- "High"
 ```
 
 ```{r}
