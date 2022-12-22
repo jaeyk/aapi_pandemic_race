@@ -108,12 +108,24 @@ replacena0 <- function(x) {
 
 # Normalize data
 rescale01 <- function(x) {
+
+    if (!is.numeric(x)) {
+
+        x <- as.numeric(x)
+    }
+
     x <- scales::rescale(x, to = c(0, 1))
+
     return(x)
 }
 
 # Reverse code
 reverse <- function(x) {
+
+    if (!is.numeric(x)) {
+
+        x <- as.numeric(x)
+    }
 
     out <- (max(x, na.rm = T) + 1) - x
 

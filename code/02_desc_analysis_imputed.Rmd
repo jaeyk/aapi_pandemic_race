@@ -59,11 +59,6 @@ options(scipen = 999)
 df <- read_csv(here("processed_data", "panel_data_cleaned.csv"))[,-c(1:2)]
 
 df2 <- subset(df, wave == 2)
-
-# Add independent and non partisans
-df$independent <- ifelse(df$party.id == "Independent", 1, 0)
-
-df$indi_other <- ifelse(df$party.id %in% c("Democrat", "Republican") | is.na(df$party.id), 0, 1)
 ```
 
 # Summarize by group 
@@ -396,17 +391,17 @@ df12 <- subset(df, wave %in% c(1,2))
 
 panel_mods12 <- list(
 
-    "DEM FE" = plm(DEM ~ gendiscrim + usborn + edu + income + age + male + chinese + korean, data=df12, index = c("pid", "wave"), model = "within"),  #fixed model
+    "DEM FE" = plm(DEM ~ gendiscrim + usborn + edu + age + male + chinese + korean, data=df12, index = c("pid", "wave"), model = "within"),  #fixed model
 
-    "DEM RE" = plm(DEM ~ gendiscrim + usborn + edu + income + age + male + chinese + korean, data=df12, index = c("pid", "wave"), model = "random"),  #random model
+    "DEM RE" = plm(DEM ~ gendiscrim + usborn + edu + age + male + chinese + korean, data=df12, index = c("pid", "wave"), model = "random"),  #random model
 
-    "GOP FE" = plm(GOP ~ gendiscrim + usborn + edu + income + age + male + chinese + korean, data=df12, index = c("pid", "wave"), model = "within"),  #fixed model
+    "GOP FE" = plm(GOP ~ gendiscrim + usborn + edu + age + male + chinese + korean, data=df12, index = c("pid", "wave"), model = "within"),  #fixed model
 
-    "GOP RE" = plm(GOP ~ gendiscrim + usborn + edu + income + age + male + chinese + korean, data=df12, index = c("pid", "wave"), model = "random"),  #random model
+    "GOP RE" = plm(GOP ~ gendiscrim + usborn + edu + age + male + chinese + korean, data=df12, index = c("pid", "wave"), model = "random"),  #random model
 
-    "Independent FE" = plm(independent ~ gendiscrim + usborn + edu + income + age + male + chinese + korean, data=df12, index = c("pid", "wave"), model = "within"),  #fixed model
+    "Independent FE" = plm(independent ~ gendiscrim + usborn + edu + age + male + chinese + korean, data=df12, index = c("pid", "wave"), model = "within"),  #fixed model
 
-    "Independent RE" = plm(independent ~ gendiscrim + usborn + edu + income + age + male + chinese + korean, data=df12, index = c("pid", "wave"), model = "random")  #random model
+    "Independent RE" = plm(independent ~ gendiscrim + usborn + edu + age + male + chinese + korean, data=df12, index = c("pid", "wave"), model = "random")  #random model
 
     )
 ```
@@ -430,7 +425,10 @@ panel_mods13 <- list(
 
 table_mods12 <- modelsummary(panel_mods12, estimate = "p.value", output = "gt", vcov = "robust")
 
-table_mods13 <- modelsummary(panel_mods, estimate = "p.value", output = "gt", vcov = "robust")
+table_mods13 <- modelsummary(panel_mods13, estimate = "p.value", output = "gt", vcov = "robust")
+
+table_mods12
+table_mods13
 ```
 
 ```{r}
