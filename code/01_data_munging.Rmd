@@ -18,7 +18,9 @@ pacman::p_load(tidyverse, # tidyverse
                tidylog, # logging analysis
                readxl, 
                zeallot,
-               flextable) # table
+               flextable, # table
+               survey,  # weighted proportion tables
+               anesrake) # creating weight variables
 
 source(here("functions/utils.r"))
 ```
@@ -346,9 +348,11 @@ df$edu <- rep(subset(df, wave == 1)$edu, 3)
 df$state <- rep(subset(df, wave == 1)$state, 3)
 df$natorigin <- rep(subset(df, wave == 1)$natorigin, 3)
 
-df$chinese <- if_else(df$natorigin == 1, 1, 0) %>% factor()
-df$korean <- if_else(df$natorigin == 4, 1, 0) %>% factor()
-df$japanese <- if_else(df$natorigin == 7, 1, 0) %>% factor()
+# National origin 
+df$chinese <- if_else(df$natorigin == 1, 1, 0) 
+df$indian <- if_else(df$natorigin == 3, 1, 0) 
+df$korean <- if_else(df$natorigin == 4, 1, 0) 
+df$japanese <- if_else(df$natorigin == 7, 1, 0) 
 ```
 
 ```{r}
@@ -385,8 +389,6 @@ c(df$apa.discrim.rona, df$linkedfate, df$trump.approve, df$trump.approve, df$apa
 c(df$apa.discrim.rona, df$gendiscrim, df$linkedfate, df$trump.approve, df$age, df$edu, df$apa.responsible, df$apa.have.rona, df$apa.harassment, df$idimport, df$asnpride, df$`2020likelyvote`, df$ronaunfairasian, df$income) %<-% map(list(df$apa.discrim.rona, df$gendiscrim, df$linkedfate, df$trump.approve, df$age, df$edu, df$apa.responsible, df$apa.have.rona, df$apa.harassment, df$idimport, df$asnpride, df$`2020likelyvote`, df$ronaunfairasian, df$income), rescale01)
 
 # Factorize (categorical variables)
-df$usborn <- factor(df$usborn)
-df$male <- factor(df$male)
 df$party.id <- factor(df$party.id)
 df$state <- factor(df$state)
 
@@ -457,8 +459,53 @@ sum_table <- regulartable(table_df) %>%
   autofit()
 
 save_as_docx(sum_table, path = here("outputs", "summary_table.docx"))
+```
 
-nrow(df)/3
+# Create weights 
+
+```{r}
+# 2020 estimates from our survey data 
+# Chinese - 34% 
+# Indian - 15%
+# Foreign born rate - 46%
+# Female - 47%
+
+# 2020 estimates from the US Census
+# Chinese - 24%
+# Indian - 21%
+# Foreign born rate - 60%
+# Female - 53%
+
+df_unweighted <- svydesign(
+    id = ~1, 
+    data = df
+)
+
+# population-level distributions 
+
+chinese_dist <- data.frame(chinese = c(1, 0),
+                           Freq = nrow(df) * c(0.24, 0.76))
+
+indian_dist <- data.frame(indian = c(1, 0),
+                          Freq = nrow(df) * c(0.21, 0.79))
+
+usborn_dist <- data.frame(usborn = c(1, 0),
+                          Freq = nrow(df) * c(0.4, 0.6))
+
+male_dist <- data.frame(male = c(1, 0),
+                        Freq = nrow(df) * c(0.47, 1-0.24))
+
+# raking 
+
+df_raked <- rake(design = df_unweighted,
+                 sample.margins = list(~chinese, ~indian, ~male, ~usborn),
+                 population.margins = list(chinese_dist, indian_dist, male_dist, usborn_dist))
+
+# summarize weights 
+summary(weights(df_raked))
+
+# add weights 
+df$weights <- weights(df_raked)
 ```
 
 # Export data 
