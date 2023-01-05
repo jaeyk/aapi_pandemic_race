@@ -1,5 +1,5 @@
 ---
-title: "Data analysis"
+title: "Data munging"
 author: "Jae Yeon Kim"
 date: "`r Sys.Date()`"
 output:
@@ -36,6 +36,7 @@ w3 <- read_xls(here("raw_data/w3_numeric_jul10.xls"))[-c(1:2),]
 ```
 
 ```{r message = FALSE}
+# Codebook
 codebook <- read_csv(here("raw_data/codebook_jul10.csv"))
 
 # Check dimensions 
@@ -91,8 +92,6 @@ sum(is.na(w3_copy$expdiscrim)) == nrow(w3_copy)
 w1 <- w1_copy
 w2 <- w2_copy
 w3 <- w3_copy
-
-mean(is.na(w2$apa.discrim.rona))
 ```
 
 ## Add an wave identifier 
@@ -108,7 +107,6 @@ names(w3) <- glue("W3_{names(w3)}")
 ```{r}
 # Inner join
 w12 <- inner_join(w1, w2, by = c("W1_respondent.id" = "W2_respondent.id"))
-
 w13 <- inner_join(w1, w3, by = c("W1_pid" = "W3_pid"))
 
 # Remove duplicates 
@@ -138,8 +136,7 @@ The attrition rate between w2 and w3 is: 38%
 # Wave 1 and 2
 common.q12 <- intersect(extract_name(w12, "W2"), extract_name(w12, "W1"))
 
-long12 <- w12 %>%
-  select(matches(common.q12) | W1_respondent.id) 
+long12 <- w12 %>% select(matches(common.q12) | W1_respondent.id) 
 
 # Check Chinese %
 mean(long12$W1_natorigin == 1)
@@ -173,6 +170,7 @@ mean(long_df$W1_natorigin == 1)
 ## Bind by rows 
 
 ```{r}
+# wave1
 w1 <- long_df %>%
   select(matches("W1")) %>%
   select(!matches("W2|W3"))
@@ -180,9 +178,8 @@ w1 <- long_df %>%
 names(w1) <- str_replace_all(names(w1), "W1_", "")
 
 w1$wave <- 1
-```
 
-```{r}
+# wave2 
 w2 <- long_df %>%
   select(matches("W2")) %>%
   select(!matches("W1|W3"))
@@ -190,9 +187,8 @@ w2 <- long_df %>%
 names(w2) <- str_replace_all(names(w2), "W2_", "")
 
 w2$wave <- 2
-```
 
-```{r}
+# wave3 
 w3 <- long_df %>%
   select(matches("W3")) %>%
   select(!matches("W1|W2"))
@@ -201,10 +197,9 @@ names(w3) <- str_replace_all(names(w3), "W3_", "")
 
 w3$wave <- 3
 
-w1$respondent.id <- NULL
-```
+# combine them
 
-```{r}
+w1$respondent.id <- NULL
 w2$pid <- w1$pid
 w3$pid <- w1$pid
 
@@ -243,7 +238,9 @@ if (!dir.exists(here("processed_data"))) dir.create(here("processed_data"))
 write.csv(completed_df, here("processed_data/panel_data.csv"))
 ```
 
-# Munging
+# Recoding
+
+## Recode NAs
 
 ```{r}
 ## Replace with NA
