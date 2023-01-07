@@ -262,9 +262,9 @@ tidy(t.test(subset(df, prior == 1) %>% pull({{x}}), subset(df, prior == 0) %>% p
 
 cal_model_outputs <- function(x) {
 
-    lm.out <- lm(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = x)
+    lm.out <- lm(likely_vote ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave_fac + korean + japanese, data = x)
 
-    robust.out <- estimatr::lm_robust(X2020likelyvote ~ gendiscrim + apa.discrim.rona + usborn + edu + income + DEM + GOP + age + male + factor(wave) + korean + japanese, data = x)
+    robust.out <- estimatr::lm_robust(likely_vote ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave_fac + korean + japanese, data = x)
 
     model.outs <- bind_rows(
         tidy(lm.out, conf.int = TRUE) %>%
@@ -320,7 +320,7 @@ run_sense <- function(model) {
 
     sense.out <- sensemakr(model = model,
                            treatment = "apa.discrim.rona",
-                           benchmark_covariates = "usborn",
+                           benchmark_covariates = "usborn1",
                            kd = 1:3,
                            ky = 1:3,
                            q = 1)
