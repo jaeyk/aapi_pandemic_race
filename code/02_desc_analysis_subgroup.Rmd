@@ -30,7 +30,7 @@ pacman::p_load(
   sensemakr,
   mice,
   testthat,
-  ggcorrplot
+  modelsummary
 )
 
 source(here("functions/utils.r"))
@@ -64,6 +64,9 @@ df$prior[df$proxy > 0.5] <- "High"
 
 # factorize
 
+df <- df %>% 
+  mutate(prior = fct_relevel(prior, levels = c("Low", "Middle", "High")))
+
 ## covariates
 df$wave <- factor(df$wave)
 ```
@@ -72,7 +75,6 @@ df$wave <- factor(df$wave)
 
 ```{r}
 biden_total_plot <- df %>%
-  mutate(prior = fct_relevel(prior, levels = c("Low", "Middle", "High"))) %>%
   filter(wave_fac %in% c("May", "November")) %>%
   group_by(wave_fac) %>%
   summarize(biden_support = mean(biden, na.rm = T)) %>%
@@ -86,7 +88,6 @@ biden_total_plot <- df %>%
 
 ```{r}
 biden_sub_plot <- df %>%
-  mutate(prior = fct_relevel(prior, levels = c("Low", "Middle", "High"))) %>%
   filter(wave_fac %in% c("May", "November")) %>%
   group_by(prior, wave_fac) %>%
   summarize(biden_support = mean(biden, na.rm = T)) %>%
@@ -102,7 +103,6 @@ biden_sub_plot <- df %>%
 
 ```{r}
 cor_plot <- df %>% 
-  mutate(prior = fct_relevel(prior, levels = c("Low", "Middle", "High"))) %>%
   filter(wave_fac %in% c("May", "November")) %>%
   group_by(prior, wave_fac) %>%
   summarize("COVID-19 discrimination" = cor(biden, apa.discrim.rona, use = "complete.obs"),
@@ -127,3 +127,15 @@ subset(df, wave == 1)$prior %>% table()
 ```
 
 High = 199, Low = 204, Middle = 261
+
+# Data summaries 
+
+```{r}
+datasummary_balance(
+  ~prior,
+  data = df %>%
+    filter(wave == 1) %>%
+    select(income, edu, usborn, party.id, chinese, indian, prior),
+  output = "gt"
+  )
+```
