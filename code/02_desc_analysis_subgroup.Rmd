@@ -73,33 +73,52 @@ df$wave <- factor(df$wave)
 
 # Visualize correlation matrix
 
+## Biden total 
+
 ```{r}
 biden_total_plot <- df %>%
   filter(wave_fac %in% c("May", "November")) %>%
   group_by(wave_fac) %>%
-  summarize(biden_support = mean(biden, na.rm = T)) %>%
-  ggplot(aes(x = glue("{factor(wave_fac)} 2020"), y = round(biden_support, 2)*100)) +
-  geom_col(position = "dodge2") +  
+  summarize(biden_support = mean(biden, na.rm = T),
+            ci_high = ci.high(biden),
+            ci_low = ci.low(biden)) %>%
+  ggplot(aes(x = glue("{factor(wave_fac)} 2020"), 
+             y = round(biden_support, 2),
+         ymax = biden_support + ci_high, 
+         ymin = biden_support - ci_low)) +
+  geom_errorbar() +
+  geom_col(alpha = 0.5) +
   ggrepel::geom_text_repel(aes(label = paste0(round(biden_support, 2)*100, "%"))) +
   labs(y = "Biden support (%)", x = "") +
   theme(legend.position = "bottom") +
-  scale_y_continuous(labels = ~paste0(., "%")) 
+  scale_y_continuous(labels = ~paste0(.*100, "%"))
+
+biden_total_plot
 ```
+## Biden sub 
 
 ```{r}
 biden_sub_plot <- df %>%
   filter(wave_fac %in% c("May", "November")) %>%
   group_by(prior, wave_fac) %>%
-  summarize(biden_support = mean(biden, na.rm = T)) %>%
-  ggplot(aes(x = glue("{factor(wave_fac)} 2020"), y = round(biden_support, 2)*100, shape = prior)) +
-  geom_point(size = 3) +  
+  summarize(biden_support = mean(biden, na.rm = T),
+            ci_high = ci.high(biden),
+            ci_low = ci.low(biden)) %>%
+  ggplot(aes(x = glue("{factor(wave_fac)} 2020"), 
+             y = round(biden_support, 2),
+         ymax = biden_support + ci_high, 
+         ymin = biden_support - ci_low)) +
+  geom_pointrange() +  
   geom_line(aes(group = prior)) +
-  labs(y = "Biden support (%)", x = "",
-       shape = "Pre-pandemic discrimination") +
+  labs(y = "Biden support (%)", x = "") +
   theme(legend.position = "bottom") +
   ggrepel::geom_text_repel(aes(label = paste0(round(biden_support, 2)*100, "%"))) +
-  scale_y_continuous(labels = ~paste0(., "%")) 
+  scale_y_continuous(labels = ~paste0(., "%")) +
+  facet_wrap(~prior)
+  
+biden_sub_plot
 ```
+## Correlation coefficients 
 
 ```{r}
 cor_plot <- df %>% 
@@ -121,9 +140,17 @@ cor_plot <- df %>%
 ```{r}
 (biden_total_plot + biden_sub_plot) / cor_plot + plot_annotation(tag_levels = "A") 
 
-ggsave(here("outputs", "fig1_desc.png"), width = 10, height = 8)
+ggsave(here("outputs", "fig1_desc.png"), width = 13)
 
 subset(df, wave == 1)$prior %>% table()
+
+df %>% 
+  filter(wave != 1) %>%
+  group_by(wave) %>%
+  summarize(miss_biden = mean(is.na(biden)))
+
+# second wave - 33%
+# third wave - 27%
 ```
 
 High = 199, Low = 204, Middle = 261
