@@ -550,7 +550,7 @@ df %>%
 ```{r}
 biden.models <- list(
 
-    "OLS" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = df, family = binomial),
+    "Logit" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = df, family = binomial),
     
     "Weighted" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = df, family = binomial, weight = weights),
     

@@ -1,5 +1,5 @@
 ---
-title: "Descriptive analysis"
+title: "Descriptive analysis (subgroup)"
 author: "Jae Yeon Kim"
 date: "`r Sys.Date()`"
 output:
@@ -12,63 +12,118 @@ output:
 ```{r}
 if (!require(pacman)) install.packages("pacman")
 
-pacman::p_load(tidyverse, # tidyverse 
-               panelr, # panel data analysis
-               here, # computational reproducibility 
-               glue, # gluing objects and strings 
-               tidylog, # logging analysis
-               naniar, # missing data 
-               zeallot, # multiple assignments 
-               readxl, 
-               ggpubr, 
-               broom, 
-               patchwork, 
-               plm, 
-               broom.mixed, 
-               estimatr, 
-               stargazer,
-               DeclareDesign,
-               sensemakr,
-               mice)
+pacman::p_load(
+  tidyverse, # tidyverse
+  panelr, # panel data analysis
+  here, # computational reproducibility
+  glue, # gluing objects and strings
+  tidylog, # logging analysis
+  naniar, # missing data
+  readxl,
+  ggpubr,
+  broom,
+  patchwork,
+  plm,
+  broom.mixed,
+  estimatr,
+  DeclareDesign,
+  sensemakr,
+  mice,
+  testthat,
+  ggcorrplot
+)
 
 source(here("functions/utils.r"))
+source(here("functions/theme.R"))
 
-# global theme 
-ggplot2::theme_set(theme_pubr())
+ggplot2::theme_set(theme_bw())
+
+# no scientific notation
+options(scipen = 999)
 ```
 
 # Load files 
 
 ```{r message = FALSE}
-df <- read.csv(here("processed_data", "panel_data_cleaned.csv"))
+df <- read_csv(here("processed_data", "panel_data_cleaned.csv"))
 ```
 
-# Summarize by group 
+# Subgroup partition 
 
 ```{r}
-var.list <- NULL
-var.list <- names(df)[str_detect(names(df), "disc")][c(1, 3)]
+# create a proxy variable
+df$proxy <- rep(subset(df, wave == 1)$gendiscrim, 3)
 
-var.list <- c(var.list, c("linkedfate", "idimport", "asnpride", "rona.behav.sneeze", "rona.behav.language", "rona.behav.walk", "rona.behav.transit", "rona.behav.other", "rona.behav.nochange", "rona.index", "X2020likelyvote", "biden", "DEM", "DEM.strong", "GOP", "GOP.strong", "unfair", "ronaunfairasian", "apa.responsible", "apa.have.rona", "apa.harassment", "unfair_others"))
+test_that("Proxy setting done correctly", {
+  expect_equal(table(df$proxy)[5] %>% as.numeric(), 186)
+})
+
+df$prior[df$proxy == 0.5] <- "Middle"
+df$prior[df$proxy < 0.5] <- "Low"
+df$prior[df$proxy > 0.5] <- "High"
+
+# factorize
+
+## covariates
+df$wave <- factor(df$wave)
 ```
 
-```{r message = FALSE}
-low_edu <- subset(df, edu < 0.5)
-middle_edu <- subset(df, edu == 0.5)
-high_edu <- subset(df, edu > 0.5)
-
-sums <- bind_rows(
-  mutate(low_edu, edu = "Low"),
-  mutate(middle_edu, edu = "Middle"),
-  mutate(high_edu, edu = "High")
-)
-
-sums$edu <- factor(sums$edu, levels = c("High", "Middle", "Low"))
-```
-
-## General and COVID-19 discrimination perception
+# Visualize correlation matrix
 
 ```{r}
-plot_two_disc_sub(sums)
-ggsave(here("outputs", "disc_edu.png"))
+biden_total_plot <- df %>%
+  mutate(prior = fct_relevel(prior, levels = c("Low", "Middle", "High"))) %>%
+  filter(wave_fac %in% c("May", "November")) %>%
+  group_by(wave_fac) %>%
+  summarize(biden_support = mean(biden, na.rm = T)) %>%
+  ggplot(aes(x = glue("{factor(wave_fac)} 2020"), y = round(biden_support, 2)*100)) +
+  geom_col(position = "dodge2") +  
+  ggrepel::geom_text_repel(aes(label = paste0(round(biden_support, 2)*100, "%"))) +
+  labs(y = "Biden support (%)", x = "") +
+  theme(legend.position = "bottom") +
+  scale_y_continuous(labels = ~paste0(., "%")) 
 ```
+
+```{r}
+biden_sub_plot <- df %>%
+  mutate(prior = fct_relevel(prior, levels = c("Low", "Middle", "High"))) %>%
+  filter(wave_fac %in% c("May", "November")) %>%
+  group_by(prior, wave_fac) %>%
+  summarize(biden_support = mean(biden, na.rm = T)) %>%
+  ggplot(aes(x = glue("{factor(wave_fac)} 2020"), y = round(biden_support, 2)*100, shape = prior)) +
+  geom_point(size = 3) +  
+  geom_line(aes(group = prior)) +
+  labs(y = "Biden support (%)", x = "",
+       shape = "Pre-pandemic discrimination") +
+  theme(legend.position = "bottom") +
+  ggrepel::geom_text_repel(aes(label = paste0(round(biden_support, 2)*100, "%"))) +
+  scale_y_continuous(labels = ~paste0(., "%")) 
+```
+
+```{r}
+cor_plot <- df %>% 
+  mutate(prior = fct_relevel(prior, levels = c("Low", "Middle", "High"))) %>%
+  filter(wave_fac %in% c("May", "November")) %>%
+  group_by(prior, wave_fac) %>%
+  summarize("COVID-19 discrimination" = cor(biden, apa.discrim.rona, use = "complete.obs"),
+            "Democratic partisanship" = cor(biden, DEM, use = "complete.obs")) %>%
+  pivot_longer(cols = matches("COVID|Democratic"),
+               names_to = "variables",
+               values_to = "corr_coefs") %>%
+  ggplot(aes(x = glue("{factor(wave_fac)} 2020"), y = corr_coefs, fill = variables)) +
+  geom_col(position = "dodge2") +
+  facet_wrap(~prior) +
+  labs(y = "Correlation coefficient (r)", x = "",
+       fill = "Correlation variables") +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+(biden_total_plot + biden_sub_plot) / cor_plot + plot_annotation(tag_levels = "A") 
+
+ggsave(here("outputs", "fig1_desc.png"), width = 10, height = 8)
+
+subset(df, wave == 1)$prior %>% table()
+```
+
+High = 199, Low = 204, Middle = 261
