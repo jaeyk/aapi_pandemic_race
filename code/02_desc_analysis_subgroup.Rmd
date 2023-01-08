@@ -136,6 +136,14 @@ datasummary_balance(
   data = df %>%
     filter(wave == 1) %>%
     select(income, edu, usborn, party.id, chinese, indian, prior),
-  output = "gt"
+  output = here("outputs", "data_summary.docx")
   )
+
+datasummary_balance(
+  ~prior,
+  data = df %>%
+    filter(wave == 1) %>%
+    select(income, edu, usborn, party.id, chinese, indian, prior),
+  output = "gt"
+)
 ```
