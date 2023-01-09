@@ -304,7 +304,7 @@ modelsummary(list(`Hardship` = mod1, `Experience` = mod2, `Witnesing` = mod3),
              coef_omit = "Intercept",
              statistic = "p.value",
              stars = TRUE,
-             vcov = "bootstrap", R = 1000,
+             vcov = "robust",
              output = here("outputs", "reg_measure.docx")) 
 ```
 
@@ -447,7 +447,7 @@ modelsummary(models,
                    "wave3" = "Wave 3",
                    "chinese1" = "Chinese",
                    "indian1" = "Indian"),
-             vcov = "HC2")
+             vcov = "robust")
 ```
 
 ```{r}
@@ -477,11 +477,11 @@ browseURL(main.tmp)
 ```{r}
 sub.models <- list(
 
-    "High Discrimination Pre-COVID" = lm(likely_vote ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "High"), weight = weights),
+    "High Discrimination Pre-COVID" = lm(likely_vote ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "High")),
             
-    "Middle Discrimination Pre-COVID" = lm(likely_vote ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "Middle"), weight = weights),
+    "Middle Discrimination Pre-COVID" = lm(likely_vote ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "Middle")),
             
-    "Low Discrimination Pre-COVID" = lm(likely_vote ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "Low"), weight = weights)
+    "Low Discrimination Pre-COVID" = lm(likely_vote ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "Low"))
     )
 
 modelsummary(sub.models,
@@ -502,7 +502,7 @@ modelsummary(sub.models,
                    "wave3" = "Wave 3",
                    "chinese1" = "Chinese",
                    "indian1" = "Indian"),
-             vcov = "HC2")
+             vcov = "robust")
 ```
 
 ```{r}
@@ -580,7 +580,7 @@ modelsummary(biden.models,
                    "wave3" = "Wave 3",
                    "chinese1" = "Chinese",
                    "indian1" = "Indian"),
-             vcov = c("HC0"))
+             vcov = "robust")
 ```
 
 ```{r}
@@ -648,7 +648,7 @@ modelsummary(sub.models,
                    "wave3" = "Wave 3",
                    "chinese1" = "Chinese",
                    "indian1" = "Indian"),
-             vcov = "HC0")
+             vcov = "robust")
 ```
 
 ```{r}
@@ -685,7 +685,7 @@ run_sense(model) %>%
 ```{r}
 modelplot(lm(gendiscrim ~ usborn + edu + income + DEM + GOP + age + male, data = subset(df, wave == 1)),
           coef_omit = "Intercept",
-          vcov = "HC2",
+          vcov = "robust",
           coef_rename = 
                  c("usborn1" = "US born",
                    "edu" = "Education",
@@ -703,7 +703,7 @@ ggsave(here("outputs", "correlate_gen.png"))
 ```{r}
 modelplot(lm(apa.discrim.rona ~ usborn + edu + DEM + GOP + age + male + wave_fac, data = subset(df, wave != 1)),
           coef_omit = "Intercept",
-          vcov = "HC2",
+          vcov = "robust",
           coef_rename = 
                  c("usborn1" = "US born",
                    "edu" = "Education",

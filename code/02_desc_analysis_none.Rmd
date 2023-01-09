@@ -137,7 +137,7 @@ modelsummary(models,
                    "wave3" = "Wave 3",
                    "chinese1" = "Chinese",
                    "indian1" = "Indian"),
-             vcov = "HC2")
+             vcov = "robust")
 ```
 
 ```{r}
@@ -181,7 +181,7 @@ modelsummary(sub.models,
                    "wave3" = "Wave 3",
                    "chinese1" = "Chinese",
                    "indian1" = "Indian"),
-             vcov = "HC2")
+             vcov = "robust")
 ```
 
 ## Biden candidacy
@@ -220,7 +220,7 @@ modelsummary(biden.models,
                    "wave3" = "Wave 3",
                    "chinese1" = "Chinese",
                    "indian1" = "Indian"),
-             vcov = c("HC0"))
+             vcov = "robust")
 ```
 
 ```{r}
@@ -249,11 +249,11 @@ modelsummary(test.out,
 ```{r}
 sub.models <- list(
 
-    "High Discrimination Pre-COVID" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "High"), family = binomial, weight = weights),
+    "High Discrimination Pre-COVID" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "High"), family = binomial),
             
-    "Middle Discrimination Pre-COVID" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "Middle"), family = binomial, weight = weights),
+    "Middle Discrimination Pre-COVID" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "Middle"), family = binomial),
             
-    "Low Discrimination Pre-COVID" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "Low"), family = binomial, weight = weights)
+    "Low Discrimination Pre-COVID" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "Low"), family = binomial)
 
 )
 ```
@@ -278,7 +278,7 @@ modelsummary(sub.models,
                    "wave3" = "Wave 3",
                    "chinese1" = "Chinese",
                    "indian1" = "Indian"),
-             vcov = "HC0")
+             vcov = "robust")
 ```
 
 ## Correlates
@@ -286,7 +286,7 @@ modelsummary(sub.models,
 ```{r}
 modelplot(lm(gendiscrim ~ usborn + edu + income + DEM + GOP + age + male, data = subset(df, wave == 1)),
           coef_omit = "Intercept",
-          vcov = "HC2",
+          vcov = "robust",
           coef_rename = 
                  c("usborn1" = "US born",
                    "edu" = "Education",
@@ -303,7 +303,7 @@ ggsave(here("outputs", "correlate_gen_none.png"))
 ```{r}
 modelplot(lm(apa.discrim.rona ~ usborn + edu + DEM + GOP + age + male + wave_fac, data = subset(df, wave != 1)),
           coef_omit = "Intercept",
-          vcov = "HC2",
+          vcov = "robust",
           coef_rename = 
                  c("usborn" = "US born",
                    "edu" = "Education",
