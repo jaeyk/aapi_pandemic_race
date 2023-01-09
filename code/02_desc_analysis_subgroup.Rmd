@@ -80,20 +80,14 @@ biden_total_plot <- df %>%
   filter(wave_fac %in% c("May", "November")) %>%
   group_by(wave_fac) %>%
   summarize(biden_support = mean(biden, na.rm = T),
-            ci_high = ci.high(biden),
-            ci_low = ci.low(biden)) %>%
+            se = sd(biden)/sqrt(length(biden))) %>%
   ggplot(aes(x = glue("{factor(wave_fac)} 2020"), 
-             y = round(biden_support, 2),
-         ymax = biden_support + ci_high, 
-         ymin = biden_support - ci_low)) +
-  geom_errorbar() +
+             y = round(biden_support, 2))) +
   geom_col(alpha = 0.5) +
   ggrepel::geom_text_repel(aes(label = paste0(round(biden_support, 2)*100, "%"))) +
   labs(y = "Biden support (%)", x = "") +
   theme(legend.position = "bottom") +
   scale_y_continuous(labels = ~paste0(.*100, "%"))
-
-biden_total_plot
 ```
 ## Biden sub 
 
@@ -102,21 +96,16 @@ biden_sub_plot <- df %>%
   filter(wave_fac %in% c("May", "November")) %>%
   group_by(prior, wave_fac) %>%
   summarize(biden_support = mean(biden, na.rm = T),
-            ci_high = ci.high(biden),
-            ci_low = ci.low(biden)) %>%
+            se = sd(biden)/sqrt(length(biden))) %>%
   ggplot(aes(x = glue("{factor(wave_fac)} 2020"), 
-             y = round(biden_support, 2),
-         ymax = biden_support + ci_high, 
-         ymin = biden_support - ci_low)) +
-  geom_pointrange() +  
+             y = round(biden_support, 2))) +
+  geom_point() +  
   geom_line(aes(group = prior)) +
   labs(y = "Biden support (%)", x = "") +
   theme(legend.position = "bottom") +
   ggrepel::geom_text_repel(aes(label = paste0(round(biden_support, 2)*100, "%"))) +
   scale_y_continuous(labels = ~paste0(., "%")) +
   facet_wrap(~prior)
-  
-biden_sub_plot
 ```
 ## Correlation coefficients 
 
@@ -140,7 +129,8 @@ cor_plot <- df %>%
 ```{r}
 (biden_total_plot + biden_sub_plot) / cor_plot + plot_annotation(tag_levels = "A") 
 
-ggsave(here("outputs", "fig1_desc.png"), width = 13)
+ggsave(here("outputs", "fig1_desc.png"), 
+       width = 13, height = 8)
 
 subset(df, wave == 1)$prior %>% table()
 
