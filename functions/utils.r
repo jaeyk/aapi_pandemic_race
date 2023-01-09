@@ -320,10 +320,8 @@ run_sense <- function(model) {
 
     sense.out <- sensemakr(model = model,
                            treatment = "apa.discrim.rona",
-                           benchmark_covariates = "usborn1",
-                           kd = 1:3,
-                           ky = 1:3,
-                           q = 1)
+                           benchmark_covariates = "DEM1",
+                           kd = 1:3)
 
     out <- sense.out %>%
         summary()

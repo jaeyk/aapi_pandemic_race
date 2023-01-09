@@ -302,7 +302,7 @@ set.seed(1234)
 modelsummary(list(`Hardship` = mod1, `Experience` = mod2, `Witnesing` = mod3),
              fmt = 4,
              coef_omit = "Intercept",
-             statistic = "p.value",
+             statistic = c("p = {p.value}"),
              stars = TRUE,
              vcov = "robust",
              output = here("outputs", "reg_measure.docx")) 
@@ -432,7 +432,7 @@ models <- list(
 modelsummary(models,
              fmt = 3,
              coef_omit = "Intercept",
-             #statistic = c("p = {p.value}"),
+             statistic = c("p = {p.value}"),
              stars = TRUE, 
              output = here("outputs", "reg_tb1.docx"),
              coef_rename = 
@@ -487,7 +487,7 @@ sub.models <- list(
 modelsummary(sub.models,
              fmt = 3,
              coef_omit = "Intercept",
-             #statistic = c("p = {p.value}"),
+             statistic = c("p = {p.value}"),
              stars = TRUE, 
              output = here("outputs", "reg_tb_sub1.docx"),
              coef_rename = 
@@ -565,8 +565,8 @@ modelsummary(biden.models,
              exponentiate = TRUE,
              fmt = 3,
              coef_omit = "Intercept",
-             #statistic = c("p = {p.value}"),
-             stars = TRUE, 
+             statistic = c("p = {p.value}"),
+             stars = TRUE,
              output = here("outputs", "reg_tb2.docx"),
              coef_rename = 
                 c( "gendiscrim" = "General discrimination",
@@ -586,7 +586,7 @@ modelsummary(biden.models,
 ```{r}
 sense.out.biden <- sensemakr(model = lm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = df),
           treatment = "apa.discrim.rona", 
-          benchmark_covariates = "usborn1",
+          benchmark_covariates = "DEM1",
           kd = 1:3, 
           ky = 1:3, 
           q = 1)
@@ -611,7 +611,7 @@ test.out <- lm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP 
 modelsummary(test.out, 
              fmt = 3,
              coef_omit = "Intercept",
-             #statistic = c("p = {p.value}"),
+             statistic = c("p = {p.value}"),
              stars = TRUE)
 ```
 
@@ -633,8 +633,8 @@ modelsummary(sub.models,
              exponentiate = TRUE,
              fmt = 3,
              coef_omit = "Intercept",
-             #statistic = c("p = {p.value}"),
-             stars = TRUE, 
+             statistic = c("p = {p.value}"),
+             stars = TRUE,
              output = here("outputs", "reg_tb_sub2.docx"),
              coef_rename = 
                  c("gendiscrim" = "General discrimination",
@@ -652,8 +652,12 @@ modelsummary(sub.models,
 ```
 
 ```{r}
-model <- lm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "Middle"))
+model <- lm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "Low"))
 
+model$coefficients
+```
+
+```{r}
 sense_series <- c(model %>% 
     tidy() %>% 
     filter(term == "apa.discrim.rona") %>%
