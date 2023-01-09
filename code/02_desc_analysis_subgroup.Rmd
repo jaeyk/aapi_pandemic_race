@@ -81,7 +81,7 @@ biden_total_plot <- df %>%
   group_by(wave_fac) %>%
   summarize(biden_support = mean(biden, na.rm = T),
             se = sd(biden)/sqrt(length(biden))) %>%
-  ggplot(aes(x = glue("{factor(wave_fac)} 2020"), 
+  ggplot(aes(x = glue("{factor(wave_fac)}"), 
              y = round(biden_support, 2))) +
   geom_col(alpha = 0.5) +
   ggrepel::geom_text_repel(aes(label = paste0(round(biden_support, 2)*100, "%"))) +
@@ -97,7 +97,7 @@ biden_sub_plot <- df %>%
   group_by(prior, wave_fac) %>%
   summarize(biden_support = mean(biden, na.rm = T),
             se = sd(biden)/sqrt(length(biden))) %>%
-  ggplot(aes(x = glue("{factor(wave_fac)} 2020"), 
+  ggplot(aes(x = glue("{factor(wave_fac)}"), 
              y = round(biden_support, 2))) +
   geom_point() +  
   geom_line(aes(group = prior)) +
@@ -129,8 +129,8 @@ cor_plot <- df %>%
 ```{r}
 (biden_total_plot + biden_sub_plot) / cor_plot + plot_annotation(tag_levels = "A") 
 
-ggsave(here("outputs", "fig1_desc.png"), 
-       width = 13, height = 8)
+ggsave(here("outputs", "fig1_desc.png"),
+       width = 7)
 
 subset(df, wave == 1)$prior %>% table()
 
