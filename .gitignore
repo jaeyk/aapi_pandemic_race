@@ -4,5 +4,6 @@
 .Ruserdata
 raw_data/
 processed_data/
+outputs/
 *.csv
 *.Rdata
