@@ -43,7 +43,8 @@ pacman::p_load(tidyverse, # tidyverse
                gt,
                bootstrap,
                lme4,
-               clipr)
+               clipr,
+               infer)
 
 source(here("functions/utils.r"))
 source(here("functions/theme.R"))
@@ -62,6 +63,17 @@ df <- read_csv(here("processed_data", "panel_data_cleaned.csv"))[,-c(1:2)]
 df2 <- subset(df, wave == 2)
 
 t.test(subset(df, wave == 2)$apa.discrim.rona, subset(df, wave == 3)$apa.discrim.rona) 
+
+ch_score <- data.frame(ch_score = subset(df, wave == 2)$apa.discrim.rona - subset(df, wave == 3)$apa.discrim.rona)
+
+ch_score %>%
+  ggplot(aes(x = ch_score)) +
+  geom_bar() +
+  scale_x_binned() +
+  labs(x = "Change score between waves 2 and 3",
+       y = "Count")
+
+ggsave(here("outputs", "ch_score.png"))
 ```
 
 # Summarize by group 
