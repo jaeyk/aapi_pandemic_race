@@ -60,6 +60,8 @@ options(scipen = 999)
 df <- read_csv(here("processed_data", "panel_data_cleaned.csv"))[,-c(1:2)]
 
 df2 <- subset(df, wave == 2)
+
+t.test(subset(df, wave == 2)$apa.discrim.rona, subset(df, wave == 3)$apa.discrim.rona) 
 ```
 
 # Summarize by group 
