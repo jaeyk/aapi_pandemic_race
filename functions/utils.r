@@ -1,4 +1,17 @@
 
+factorize <- function(x) {
+
+    ## covariates
+    x$usborn <- factor(x$usborn)
+    x$male <- factor(x$male)
+    x$chinese <- factor(x$chinese)
+    x$indian <- factor(x$indian)
+    x$GOP <- factor(x$GOP)
+    x$DEM <- factor(x$DEM)
+
+    return(x)
+}
+
 # Credit to Achim here:
 # http://stackoverflow.com/questions/27367974/
 # different-robust-standard-errors-of-logit-regression-in-stata-and-r

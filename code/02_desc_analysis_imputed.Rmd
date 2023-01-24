@@ -74,6 +74,55 @@ ch_score %>%
        y = "Count")
 
 ggsave(here("outputs", "ch_score.png"))
+
+dv <- subset(df, wave == 1)$gendiscrim
+
+covat2 <- df %>%
+  filter(wave == 2) %>%
+  select(apa.discrim.rona, usborn, edu, DEM, GOP, age, male, chinese, indian)
+
+covat3 <- df %>%
+  filter(wave == 3) %>%
+  select(apa.discrim.rona, usborn, edu, DEM, GOP, age, male, chinese, indian)
+
+covat2$gendiscrim <- dv
+covat3$gendiscrim <- dv
+
+covat2 <- factorize(covat2)
+covat3 <- factorize(covat3)
+
+mods_exo <- list(
+
+  "2nd wave" = lm(gendiscrim ~ apa.discrim.rona + usborn + edu + DEM + GOP + age + male + chinese + indian, data = covat2),
+  
+  "3rd wave" = lm(gendiscrim ~ apa.discrim.rona + usborn + edu + DEM + GOP + age + male + chinese + indian, data = covat3)
+
+  )
+```
+
+```{r}
+modelsummary(mods_exo, output = "gt")
+```
+
+```{r}
+modelsummary(mods_exo,
+             fmt = 3,
+             coef_omit = "Intercept",
+             statistic = c("p = {p.value}"),
+             stars = TRUE,
+             output = here("outputs", "reg_exo.docx"),
+             coef_rename = 
+                c( "gendiscrim" = "General discrimination",
+                   "apa.discrim.rona" = "COVID-19 discrimination",
+                   "usborn1" = "US born",
+                   "edu" = "Education",
+                   "DEM1" = "Democratic Party",
+                   "GOP1" = "Republican Party",
+                   "age" = "Age",
+                   "male1" = "Male",
+                   "chinese1" = "Chinese",
+                   "indian1" = "Indian"),
+             vcov = "robust")
 ```
 
 # Summarize by group 
