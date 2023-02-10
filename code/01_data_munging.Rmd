@@ -353,6 +353,8 @@ df$chinese <- if_else(df$natorigin == 1, 1, 0)
 df$indian <- if_else(df$natorigin == 3, 1, 0) 
 df$korean <- if_else(df$natorigin == 4, 1, 0) 
 df$japanese <- if_else(df$natorigin == 7, 1, 0) 
+df$vietnamese <- if_else(df$natorigin == 7, 1, 0)
+df$filipino <- if_else(df$natorigin == 7, 1, 0)
 ```
 
 ```{r}
@@ -429,7 +431,7 @@ df$usborn <- rep(subset(df, wave == 1)$usborn, 3)
 
 ```{r}
 table_df <- df %>%
-  summarize(female = mean(male %>% unclass() - 1),
+  dplyr::summarize(female = mean(male %>% unclass() - 1),
             for_born = 1 - mean(usborn %>% unclass() - 1),
             edu_level = mean(edu),
             income_level = mean(income),

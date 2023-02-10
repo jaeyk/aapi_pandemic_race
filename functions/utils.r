@@ -1,5 +1,5 @@
 
-factorize <- function(x) {
+factorize_dummy <- function(x) {
 
     ## covariates
     x$usborn <- factor(x$usborn)

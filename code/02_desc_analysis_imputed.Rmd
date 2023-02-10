@@ -59,7 +59,11 @@ options(scipen = 999)
 
 ```{r message = FALSE}
 df <- read_csv(here("processed_data", "panel_data_cleaned.csv"))[,-c(1:2)]
+```
 
+# Measurement check 
+
+```{r}
 df2 <- subset(df, wave == 2)
 
 t.test(subset(df, wave == 2)$apa.discrim.rona, subset(df, wave == 3)$apa.discrim.rona) 
@@ -87,15 +91,18 @@ covat3 <- df %>%
 
 covat2$gendiscrim <- dv
 covat3$gendiscrim <- dv
+```
 
-covat2 <- factorize(covat2)
-covat3 <- factorize(covat3)
+```{r}
+# factorize dummy variables
+covat2 <- factorize_dummy(covat2)
+covat3 <- factorize_dummy(covat3)
 
 mods_exo <- list(
 
-  "2nd wave" = lm(gendiscrim ~ apa.discrim.rona + usborn + edu + DEM + GOP + age + male + chinese + indian, data = covat2),
+  "2nd wave" = lm(apa.discrim.rona ~ gendiscrim + usborn + edu + DEM + GOP + age + male + chinese + indian, data = covat2),
   
-  "3rd wave" = lm(gendiscrim ~ apa.discrim.rona + usborn + edu + DEM + GOP + age + male + chinese + indian, data = covat3)
+  "3rd wave" = lm(apa.discrim.rona ~ gendiscrim + usborn + edu + DEM + GOP + age + male + chinese + indian, data = covat3)
 
   )
 ```
@@ -455,7 +462,15 @@ df$proxy %>% table()
 df$prior[df$proxy == 0.5] <- "Middle"
 df$prior[df$proxy < 0.5] <- "Low"
 df$prior[df$proxy > 0.5] <- "High"
+
+min(df$proxy) ; max(df$proxy)
 ```
+
+Group definition 
+
+    - Middle = 0.5  
+    - 1 >= High > 0.5 
+    - 0 <= Low < 0.5 
 
 ```{r}
 # create factor variables 

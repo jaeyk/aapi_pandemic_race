@@ -95,7 +95,7 @@ density_plot <- df %>%
 cor_plot <- df %>% 
   filter(wave_fac %in% c("May", "November")) %>%
   group_by(prior, wave_fac) %>%
-  summarize("COVID-19 discrimination" = cor(biden, apa.discrim.rona, use = "complete.obs"),
+  dplyr::summarize("COVID-19 discrimination" = cor(biden, apa.discrim.rona, use = "complete.obs"),
             "Democratic partisanship" = cor(biden, DEM, use = "complete.obs")) %>%
   pivot_longer(cols = matches("COVID|Democratic"),
                names_to = "variables",
@@ -126,8 +126,6 @@ df %>%
 # third wave - 27%
 ```
 
-High = 199, Low = 204, Middle = 261
-
 # Data summaries 
 
 ```{r}
@@ -135,15 +133,26 @@ datasummary_balance(
   ~prior,
   data = df %>%
     filter(wave == 1) %>%
-    select(income, edu, usborn, party.id, chinese, indian, prior),
-  output = here("outputs", "data_summary.docx")
-  )
+    select(income, edu, usborn, male, DEM, GOP, 
+           chinese, indian, 
+           filipino, vietnamese,
+           korean, japanese,  
+           prior),
+  output = "gt"
+)
+```
 
+```{r}
 datasummary_balance(
   ~prior,
   data = df %>%
     filter(wave == 1) %>%
-    select(income, edu, usborn, party.id, chinese, indian, prior),
-  output = "gt"
-)
+    select(income, edu, usborn, gender,
+           DEM, GOP, 
+           chinese, indian, 
+           filipino, vietnamese,
+           korean, japanese, 
+           prior),
+  output = here("outputs", "data_summary.docx")
+  )
 ```
