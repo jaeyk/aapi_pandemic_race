@@ -147,7 +147,7 @@ datasummary_balance(
   ~prior,
   data = df %>%
     filter(wave == 1) %>%
-    select(income, edu, usborn, gender,
+    select(income, edu, usborn, male,
            DEM, GOP, 
            chinese, indian, 
            filipino, vietnamese,
