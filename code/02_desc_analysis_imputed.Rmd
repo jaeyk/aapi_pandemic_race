@@ -26,6 +26,7 @@ pacman::p_load(tidyverse, # tidyverse
                hrbrthemes, 
                wesanderson,
                broom, 
+               sjPlot, 
                jtools, 
                patchwork, 
                broom.mixed, 
@@ -443,6 +444,13 @@ df$GOP[index] <- imputed$GOP
 df$age[index] <- imputed$age
 ```
 
+```{r}
+df %>%
+  filter(wave != 1) %>%
+  select(gendiscrim, apa.discrim.rona, usborn, edu, DEM, GOP, age, male, natorigin, biden, `2020likelyvote`) %>%
+  vis_miss()
+```
+
 ## Likely to vote 
 
 ```{r}
@@ -483,6 +491,7 @@ df$indian <- factor(df$indian)
 df$GOP <- factor(df$GOP)
 df$DEM <- factor(df$DEM)
 df$wave <- factor(df$wave)
+df$nat_origin <- factor(df$natorigin)
 ```
 
 ```{r}
@@ -492,7 +501,7 @@ model.outs.middle <- cal_model_outputs(df %>% filter(prior == "Middle"))
 model.outs.high <- cal_model_outputs(df %>% filter(prior == "High"))
 ```
 
-### Main 
+### Main (Table 3)
 
 ```{r}
 models <- list(
@@ -550,7 +559,7 @@ read_docx() %>%
 browseURL(main.tmp)
 ```
 
-### Sub
+### Sub (Table 4)
 
 ```{r}
 sub.models <- list(
@@ -621,10 +630,10 @@ df %>%
   filter(wave == 3) %>%
   filter(!is.na(party.id)) %>%
   group_by(party.id) %>%
-  summarize(mean = mean(biden, na.rm = T))
+  dplyr::summarize(mean = mean(biden, na.rm = T))
 ```
 
-### Main 
+### Main (Table 1)
 
 ```{r}
 biden.models <- list(
@@ -693,7 +702,7 @@ modelsummary(test.out,
              stars = TRUE)
 ```
 
-### Sub
+### Sub (Table 2)
 
 ```{r}
 sub.models <- list(
@@ -760,6 +769,57 @@ bench
 run_sense(model) %>% 
     tibble() %>%
     gt()
+```
+
+## Interaction terms 
+
+```{r}
+turnout_int_mod <- list(
+  
+  "Interaction term (Turnout)" = lm(likely_vote ~ gendiscrim + apa.discrim.rona + proxy + apa.discrim.rona:proxy + usborn + edu + DEM + GOP + age + male + wave, data = df, weight = weights),
+    
+  "Interaction term with national origin dummies (Turnout)" = lm(likely_vote ~ gendiscrim  + apa.discrim.rona + proxy + apa.discrim.rona:proxy + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, weight = weights)
+  
+  )
+
+biden_int_mod <- list(
+  
+  "Interaction term (Biden candidacy)" = glm(biden ~ gendiscrim + apa.discrim.rona + proxy + apa.discrim.rona:proxy + usborn + edu + DEM + GOP + age + male + wave, data = df, family = binomial, weight = weights), 
+  
+  "Interaction term with national origin dummies (Biden candidacy)" = glm(biden ~ gendiscrim  + apa.discrim.rona + proxy + apa.discrim.rona:proxy + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, family = binomial, weight = weights)
+
+  )
+
+fit <- glm(biden ~ gendiscrim  + apa.discrim.rona + proxy + apa.discrim.rona:proxy + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, family = binomial, weight = weights)
+```
+
+```{r}
+plot_model(fit, 
+           type = "pred", 
+           terms = c("apa.discrim.rona", "proxy"),
+           color = viridis::plasma(n = 5)) +
+  labs(title = glue("Predicted probabilities of support for Democratic candidate Biden"),
+       col = "Pre-COVID general discriminatin perception",
+       x = "COVID discrimination perception", 
+       y = "Predicted probabilities") +
+  theme(legend.position = "bottom")
+
+ggsave(here("outputs", "pred_biden.png"), width = 7, height = 7)
+```
+
+```{r}
+modelsummary(turnout_int_mod,
+             exponentiate = TRUE,
+             fmt = 3,
+             coef_omit = "Intercept|nat_origin",
+             statistic = c("p = {p.value}"),
+             output = here("outputs", "turnout_int_mod.docx"))
+
+modelsummary(biden_int_mod,
+             fmt = 3,
+             coef_omit = "Intercept|nat_origin",
+             statistic = c("p = {p.value}"),
+             output = here("outputs", "biden_int_mod.docx"))
 ```
 
 ## Correlates

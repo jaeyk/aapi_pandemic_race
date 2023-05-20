@@ -267,9 +267,9 @@ Yes (1)
 No (2)
 
 ```{r}
-df <- na_if(df, 9999)
+df[df == 9999] <- NA
 
-df$ronaunfairasian <- na_if(df$ronaunfairasian, 4)
+df$ronaunfairasian[df$ronaunfairasian == 4] <- NA
 ```
 
 ## Recode values 
