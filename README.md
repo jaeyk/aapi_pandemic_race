@@ -2,7 +2,7 @@
 Asian American Perceptions of Discrimination and Political Mobilization in the 2020 Election 
 
 * Author: Vivien Leung, Jae Yeon Kim, Natalie Masuoka
-* Last updated: May 18, 2023
+* Last updated: Aug 5, 2023
 
 ## Replication code 
 
