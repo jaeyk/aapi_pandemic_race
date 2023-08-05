@@ -1,7 +1,7 @@
 # Replication code for Race in a Pandemic:
-Asian American Perceptions of Discrimination and Political Preferences in the 2020 Election 
+Asian American Perceptions of Discrimination and Political Mobilization in the 2020 Election 
 
-* Author: Jae Yeon Kim 
+* Author: Vivien Leung, Jae Yeon Kim, Natalie Masuoka
 * Last updated: May 18, 2023
 
 ## Replication code 
