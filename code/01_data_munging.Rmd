@@ -13,10 +13,11 @@ output:
 if (!require(pacman)) install.packages("pacman")
 
 pacman::p_load(tidyverse, # tidyverse 
-               here, # computational reproducibility 
+               here, # computational reproducibility
                glue, # gluing objects and strings 
                tidylog, # logging analysis
                readxl, 
+               naniar,
                zeallot,
                flextable, # table
                survey,  # weighted proportion tables
@@ -246,7 +247,6 @@ write.csv(completed_df, here("processed_data/panel_data.csv"))
 
 ```{r}
 ## Replace with NA
-
 mean(is.na(subset(completed_df, wave != 1)$apa.discrim.rona))
 
 df <- completed_df
@@ -340,15 +340,20 @@ df <- bind_rows(df12, df3)
 ```{r}
 # Create dummy variables: gender, usborn
 c(df$male, df$usborn) %<-% map(list(df$gender, df$usborn), recode_dummy)
+```
 
+```{r}
 df$all_asian_disc <- if_else(df$apa.discrim.who == 2, 1, 0)
+```
 
+```{r}
 # SES
 df$edu <- rep(subset(df, wave == 1)$edu, 3)
 df$state <- rep(subset(df, wave == 1)$state, 3)
-df$natorigin <- rep(subset(df, wave == 1)$natorigin, 3)
 
 # National origin 
+df$natorigin <- rep(subset(df, wave == 1)$natorigin, 3)
+
 df$chinese <- if_else(df$natorigin == 1, 1, 0) 
 df$indian <- if_else(df$natorigin == 3, 1, 0) 
 df$korean <- if_else(df$natorigin == 4, 1, 0) 
@@ -362,7 +367,9 @@ df$yearborn <- as.numeric(rep(subset(df, wave == 1)$yearborn, 3))
 
 df$age <- 2021 - df$yearborn
 df$age <- ifelse(df$age > 0 & df$age < 100, df$age, NA)
+```
 
+```{r}
 df$ronaunfair <- ifelse(df$ronaunfair == 1, 1, 0)
 df$rona.apa.mistreat <- ifelse(df$rona.apa.mistreat == 1, 1, 0)
 ```
@@ -427,42 +434,6 @@ df$male <- rep(subset(df, wave == 1)$male, 3)
 df$usborn <- rep(subset(df, wave == 1)$usborn, 3)
 ```
 
-# Summary 
-
-```{r}
-table_df <- df %>%
-  dplyr::summarize(female = mean(male %>% unclass() - 1),
-            for_born = 1 - mean(usborn %>% unclass() - 1),
-            edu_level = mean(edu),
-            income_level = mean(income),
-            chinese_pct = mean(if_else(str_detect(as.character(natorigin), "1"), 1, 0), na.rm = T),
-            japanese_pct = mean(if_else(str_detect(as.character(natorigin), "6"), 1, 0), na.rm = T),
-            filipino_pct = mean(if_else(str_detect(as.character(natorigin), "4"), 1, 0), na.rm = T),
-            korean_pct = mean(if_else(str_detect(as.character(natorigin), "3"), 1, 0), na.rm = T),
-            vietnamese_pct = mean(if_else(str_detect(as.character(natorigin), "5"), 1, 0), na.rm = T),
-            indian_pct = mean(if_else(str_detect(as.character(natorigin), "2"), 1, 0), na.rm = T)) %>% 
-  pivot_longer(cols = everything(), 
-               names_to = "Variables",
-               values_to = "Percentage") 
-
-table_df[-c(3:4),]$Percentage <- round(table_df[-c(3:4),]$Percentage, 2)*100
-
-table_df$Percentage[table_df$Variables == "edu_level"] <- "4 year degree"
-table_df$Percentage[table_df$Variables == "income_level"] <- "$70K - $79,999"
-
-table_df[-c(3:4),]$Percentage <- paste0(table_df[-c(3:4),]$Percentage, "%")
-
-names(table_df)[2] <- "Percentage/Average"
-
-table_df$Variables <- c("% Female", "% Foreign born", "Education level", "Income level", "% Chinese", "% Japanese", "% Fipipino", "% Korean", "% Vietnamese", "% Indian")
-
-sum_table <- regulartable(table_df) %>%
-  theme_booktabs() %>%
-  autofit()
-
-save_as_docx(sum_table, path = here("outputs", "summary_table.docx"))
-```
-
 # Create weights 
 
 ```{r}
@@ -494,14 +465,11 @@ indian_dist <- data.frame(indian = c(1, 0),
 usborn_dist <- data.frame(usborn = c(1, 0),
                           Freq = nrow(df) * c(0.4, 0.6))
 
-male_dist <- data.frame(male = c(1, 0),
-                        Freq = nrow(df) * c(0.47, 1-0.24))
-
 # raking 
 
 df_raked <- rake(design = df_unweighted,
-                 sample.margins = list(~chinese, ~indian, ~male, ~usborn),
-                 population.margins = list(chinese_dist, indian_dist, male_dist, usborn_dist))
+                 sample.margins = list(~chinese, ~indian, ~usborn),
+                 population.margins = list(chinese_dist, indian_dist, usborn_dist))
 
 # summarize weights 
 summary(weights(df_raked))
@@ -513,5 +481,5 @@ df$weights <- weights(df_raked)
 # Export data 
 
 ```{r}
-write.csv(df, here("processed_data", "panel_data_cleaned.csv"))
+write.csv(df, here("processed_data", "panel_data_recoded.csv"))
 ```
