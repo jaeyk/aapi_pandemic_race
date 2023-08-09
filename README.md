@@ -21,11 +21,12 @@
 - [Data analysis with imputation](https://github.com/jaeyk/asa_panel_data/blob/main/code/02_desc_analysis_imputed.Rmd)
     - This code reproduces the following figures and tables:
         - Figures: figure1, figure2, figure_b1, figure_b2  
-        - Tables: table2, table4, table5, table6, table_c4 
+        - Tables: table2, table4, table5, table6, table_c3, table_c4, table_c5 
 
 - [Data analysis without imputation](https://github.com/jaeyk/asa_panel_data/blob/main/code/02_desc_analysis_none.Rmd)
+    - This code reproduces the following tables: table_c7, table_c8
 
 - [Additional descriptive analysis](https://github.com/jaeyk/asa_panel_data/blob/main/code/02_desc_analysis_subgroup.Rmd)
     - This code reproduces the following figures and tables:
         - Figures: figure3
-        - Tables: table3, table_c1, table_c3
+        - Tables: table3, table_c1
