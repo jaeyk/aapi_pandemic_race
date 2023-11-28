@@ -115,7 +115,7 @@ cor_plot <- df %>%
 cor_plot +
   scale_fill_grey()
 
-ggsave(here("outputs", "figure3.png"))
+ggsave(here("outputs", "figure3.png"), width = 8, height = 6)
 ```
 
 ```{r}

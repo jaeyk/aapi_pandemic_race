@@ -275,7 +275,9 @@ plot_w123 %>%
   ylim(c(-.5, .5)) +
   scale_color_grey()
 
-ggsave(here("outputs", "figure2.png"), height = 6)
+ggsave(here("outputs", "figure2.png"), 
+       height = 6, 
+       width = 6)
 ```
 
 ## Affect 
