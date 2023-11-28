@@ -46,7 +46,7 @@ options(scipen = 999)
 # Load files 
 
 ```{r message = FALSE}
-df <- read_csv(here("processed_data", "panel_data_recoded.csv"))
+df <- read_csv(here("processed_data", "panel_data_cleaned.csv"))
 ```
 
 # Subgroup partition 
@@ -108,11 +108,12 @@ cor_plot <- df %>%
        fill = "Correlation variables") +
   theme(legend.position = "bottom")
 ```
+
 ### Figure 3
 
 ```{r}
-# Figure 2
-cor_plot
+cor_plot +
+  scale_fill_grey()
 
 ggsave(here("outputs", "figure3.png"))
 ```

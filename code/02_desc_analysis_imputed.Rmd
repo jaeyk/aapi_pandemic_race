@@ -61,7 +61,7 @@ options(scipen = 999)
 # Load files 
 
 ```{r message = FALSE}
-df <- read_csv(here("processed_data", "panel_data_recoded.csv"))[,-c(1:2)]
+df <- read_csv(here("processed_data", "panel_data_cleaned.csv"))[,-c(1:2)]
 ```
 
 # Measurement check 
@@ -258,8 +258,6 @@ plot_w123 <- bind_rows(plot_w12, plot_w13)
 ### Figure 2
 
 ```{r}
-# Figure 3
-
 plot_w123 %>%
   ggplot(aes(
     x = factor(proxy), y = mean,
@@ -275,7 +273,7 @@ plot_w123 %>%
   ) +
   geom_hline(yintercept = 0, linetype = "dotted", col = "black", size = 1) +
   ylim(c(-.5, .5)) +
-  scale_color_grey(start = .3, end = .7)
+  scale_color_grey()
 
 ggsave(here("outputs", "figure2.png"), height = 6)
 ```
