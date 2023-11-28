@@ -30,7 +30,8 @@ pacman::p_load(
   sensemakr,
   mice,
   testthat,
-  modelsummary
+  modelsummary,
+  flextable
 )
 
 source(here("functions/utils.r"))
@@ -45,7 +46,7 @@ options(scipen = 999)
 # Load files 
 
 ```{r message = FALSE}
-df <- read_csv(here("processed_data", "panel_data_cleaned.csv"))
+df <- read_csv(here("processed_data", "panel_data_recoded.csv"))
 ```
 
 # Subgroup partition 
@@ -64,7 +65,8 @@ df$prior[df$proxy > 0.5] <- "High"
 
 # factorize
 
-df$prior <- factor(df$prior, levels = c("Low", "Middle", "High"))
+df <- df %>% 
+  mutate(prior = factor(prior, levels = c("Low", "Middle", "High")))
 
 ## covariates
 df$wave <- factor(df$wave)
@@ -106,12 +108,13 @@ cor_plot <- df %>%
        fill = "Correlation variables") +
   theme(legend.position = "bottom")
 ```
+### Figure 3
 
 ```{r}
 # Figure 2
 cor_plot
 
-ggsave(here("outputs", "fig1_desc.png"))
+ggsave(here("outputs", "figure3.png"))
 ```
 
 ```{r}
@@ -128,9 +131,28 @@ df %>%
 
 # Data summaries 
 
+## Table 3
+
 ```{r}
-datasummary_balance(
-  ~prior,
+df %>%
+  filter(wave == 1) %>%
+  group_by(prior) %>%
+  count()
+```
+
+```{r}
+datasummary(
+  (`Income` = income) + 
+  (`Education` = edu) + 
+  (`Male` = male) + 
+  (`Chinese` = chinese) + 
+  (`Filipino` = filipino) + 
+  (`Indian` = indian) + 
+  (`Japanese` = japanese) + 
+  (`Korean` = korean) + 
+  (`Vietnamese` = vietnamese) + 
+  (`Democrat` = DEM) + 
+  (`Republican` = GOP) ~ prior * (Mean + SD),
   data = df %>%
     filter(wave == 1) %>%
     select(income, edu, usborn, male, DEM, GOP, 
@@ -138,33 +160,48 @@ datasummary_balance(
            filipino, vietnamese,
            korean, japanese,  
            prior),
-  output = "gt"
-)
+  fmt = 1, 
+  sparse_header = TRUE,
+  note = "Only the first wave respondents were included",
+  output = here("outputs", "table3.docx"))
+```
+
+## Table C1
+
+```{r}
+table_df <- df %>%
+  dplyr::summarize(female = 1 - mean(male),
+            for_born = 1 - mean(usborn),
+            edu_level = mean(edu),
+            income_level = mean(income),
+            chinese_pct = mean(if_else(str_detect(as.character(natorigin), "1"), 1, 0), na.rm = T),
+            japanese_pct = mean(if_else(str_detect(as.character(natorigin), "6"), 1, 0), na.rm = T),
+            filipino_pct = mean(if_else(str_detect(as.character(natorigin), "4"), 1, 0), na.rm = T),
+            korean_pct = mean(if_else(str_detect(as.character(natorigin), "3"), 1, 0), na.rm = T),
+            vietnamese_pct = mean(if_else(str_detect(as.character(natorigin), "5"), 1, 0), na.rm = T),
+            indian_pct = mean(if_else(str_detect(as.character(natorigin), "2"), 1, 0), na.rm = T)) %>% 
+  pivot_longer(cols = everything(), 
+               names_to = "Variables",
+               values_to = "Percentage") 
+
+table_df[-c(3:4),]$Percentage <- round(table_df[-c(3:4),]$Percentage, 2)*100
+
+table_df$Percentage[table_df$Variables == "edu_level"] <- "4 year degree"
+table_df$Percentage[table_df$Variables == "income_level"] <- "$70K - $79,999"
+
+table_df[-c(3:4),]$Percentage <- paste0(table_df[-c(3:4),]$Percentage, "%")
+
+names(table_df)[2] <- "Percentage/Average"
+
+table_df$Variables <- c("% Female", "% Foreign born", "Education level", "Income level", "% Chinese", "% Japanese", "% Fipipino", "% Korean", "% Vietnamese", "% Indian")
+
+sum_table <- regulartable(table_df) %>%
+  theme_booktabs() %>%
+  autofit()
+
+sum_table
 ```
 
 ```{r}
-datasummary(
-  income + 
-  edu + 
-  usborn + 
-  male +
-  DEM + 
-  GOP + 
-  chinese + 
-  indian + 
-  filipino + 
-  vietnamese +
-  korean +
-  japanese ~ 
-  prior,
-  data = df %>%
-    filter(wave == 1) %>%
-    select(income, edu, usborn, male,
-           DEM, GOP, 
-           chinese, indian, 
-           filipino, vietnamese,
-           korean, japanese, 
-           prior),
-  output = here("outputs", "data_summary.docx")
-  )
+save_as_docx(sum_table, path = here("outputs", "table_c1.docx"))
 ```

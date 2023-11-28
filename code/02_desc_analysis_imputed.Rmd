@@ -61,7 +61,7 @@ options(scipen = 999)
 # Load files 
 
 ```{r message = FALSE}
-df <- read_csv(here("processed_data", "panel_data_cleaned.csv"))[, -c(1:2)]
+df <- read_csv(here("processed_data", "panel_data_recoded.csv"))[,-c(1:2)]
 ```
 
 # Measurement check 
@@ -81,8 +81,6 @@ ch_score %>%
     x = "Change score between waves 2 and 3",
     y = "Count"
   )
-
-ggsave(here("outputs", "ch_score.png"))
 
 dv <- subset(df, wave == 1)$gendiscrim
 
@@ -113,33 +111,32 @@ mods_exo <- list(
 modelsummary(mods_exo, output = "gt")
 ```
 
+### Table 2
+
 ```{r}
 modelsummary(mods_exo,
-  fmt = 3,
-  coef_omit = "Intercept",
-  statistic = c("p = {p.value}"),
-  stars = TRUE,
-  output = here("outputs", "reg_exo.docx"),
-  coef_rename =
-    c(
-      "gendiscrim" = "General discrimination",
-      "apa.discrim.rona" = "COVID-19 discrimination",
-      "usborn1" = "US born",
-      "edu" = "Education",
-      "DEM1" = "Democratic Party",
-      "GOP1" = "Republican Party",
-      "age" = "Age",
-      "male1" = "Male",
-      "chinese1" = "Chinese",
-      "indian1" = "Indian"
-    ),
-  vcov = "robust"
-)
+             fmt = 3,
+             coef_omit = "Intercept",
+             statistic = c("p = {p.value}"),
+             #stars = TRUE,
+             output = here("outputs", "table2.docx"),
+             coef_rename = 
+                c( "gendiscrim" = "W1 Gen discrim",
+                   "apa.discrim.rona" = "COVID-19 discrim",
+                   "usborn1" = "US born",
+                   "edu" = "Education",
+                   "age" = "Age",
+                   "male1" = "Male",
+                   "chinese1" = "Chinese",
+                   "indian1" = "Indian",
+                   "DEM1" = "Democratic Party",
+                   "GOP1" = "Republican Party"),
+             vcov = "robust")
 ```
 
 # Summarize by group 
 
-## Different partisans
+## Partisanship
 
 ```{r}
 dodge <- position_dodge(width = 0.9)
@@ -167,7 +164,7 @@ var.list <- names(df)[str_detect(names(df), "disc")][c(1, 3)]
 df$apa.discrim.rona <- df$apa.discrim.rona - .5
 df$gendiscrim <- df$gendiscrim - .5
 
-var.list <- c(var.list, c("linkedfate", "idimport", "asnpride", "rona.behav.sneeze", "rona.behav.language", "rona.behav.walk", "rona.behav.transit", "rona.behav.other", "rona.behav.nochange", "2020likelyvote", "biden", "DEM", "DEM.strong", "GOP", "GOP.strong", "ronaunfair", "ronaunfairasian", "rona.apa.mistreat", "apa.responsible", "apa.have.rona", "apa.harassment", "whiteaffect", "blackaffect", "latinoaffect", "asianaffect"))
+var.list <- c(var.list, c("lostjob", "incomereduc", "knowrona", "linkedfate", "idimport", "asnpride", "rona.behav.sneeze", "rona.behav.language", "rona.behav.walk", "rona.behav.transit", "rona.behav.other", "rona.behav.nochange", "2020likelyvote", "biden", "DEM", "DEM.strong", "GOP", "GOP.strong", "ronaunfair", "ronaunfairasian", "rona.apa.mistreat", "apa.responsible", "apa.have.rona", "apa.harassment", "whiteaffect", "blackaffect", "latinoaffect", "asianaffect"))
 
 group_sum <- purrr::map_dfr(seq(var.list), group_mean) %>%
   mutate(variable = rep(var.list, each = 3)) %>%
@@ -176,37 +173,31 @@ group_sum <- purrr::map_dfr(seq(var.list), group_mean) %>%
 
 ## Discrimination perception 
 
+### Figure 1 
+
 ```{r}
 group_sum %>%
-  filter(str_detect(variable, "disc")) %>%
-  mutate(variable = recode(variable,
-    "apa.discrim.rona" = "COVID-19 discrimination",
-    "gendiscrim" =
-      "General discrimination"
-  )) %>%
-  ggplot(aes(
-    x = glue("{factor(wave_fac)} 2020"), y = mean,
-    ymax = mean + ci_high,
-    ymin = mean - ci_low
-  )) +
-  geom_errorbar() +
-  geom_col(alpha = 0.5) +
-  # ggrepel::geom_text_repel(aes(label = glue("{round(mean, 3)*100}%", position = dodge), width = 0.25, col = "red")) +
-  facet_wrap(~variable) +
-  labs(
-    title = "Changes in discrimination perception",
-    x = "", y = "Average response"
-  ) +
-  geom_hline(yintercept = 0, linetype = "dotted", col = "red", size = 1) +
-  theme(legend.position = "none")
-ggsave(here("outputs", "disc.perception.png"),
-  width = 10,
-  height = 7
-) +
-  ylim(c(-.5, .5))
+    filter(str_detect(variable, "disc")) %>%
+    mutate(variable = recode(variable, 
+                             "apa.discrim.rona" = "COVID-19 discrimination",
+                             "gendiscrim" = 
+                                 "General discrimination")) %>%
+    ggplot(aes(x = glue("{factor(wave_fac)} 2020"), y = mean,
+               ymax = mean + ci_high, 
+               ymin = mean - ci_low)) +
+        geom_errorbar() +
+        geom_col(alpha = 0.5) +
+        #ggrepel::geom_text_repel(aes(label = glue("{round(mean, 3)*100}%", position = dodge), width = 0.25, col = "red")) +
+        facet_wrap(~variable) +
+        labs(title = "Changes in discrimination perception",
+            x = "", y = "Average response") +
+        geom_hline(yintercept = 0,  linetype = 'dotted', col = 'red', size = 1) +
+        theme(legend.position = "none")
 
-ggsave(here("outputs", "diff.png"))
+ggsave(here("outputs", "figure1.png"))
 ```
+
+### Figure B2
 
 ```{r}
 gen_density <- df %>%
@@ -233,7 +224,7 @@ rona_density <- df %>%
 
 (gen_density / rona_density) + plot_annotation(tag_levels = "A")
 
-ggsave(here("outputs", "density.png"))
+ggsave(here("outputs", "figure_b2.png"))
 ```
 
 ```{r}
@@ -264,6 +255,7 @@ plot_w13 <- df %>%
 plot_w123 <- bind_rows(plot_w12, plot_w13)
 ```
 
+### Figure 2
 
 ```{r}
 # Figure 3
@@ -285,7 +277,7 @@ plot_w123 %>%
   ylim(c(-.5, .5)) +
   scale_color_grey(start = .3, end = .7)
 
-ggsave(here("outputs", "disc.wave.png"), height = 6)
+ggsave(here("outputs", "figure2.png"), height = 6)
 ```
 
 ## Affect 
@@ -301,80 +293,47 @@ group_sum %>%
     "whiteaffect" = "White"
   )) %>%
   mutate(mean = round(mean, 2)) %>%
-  ggplot(aes(
-    x = wave_fac, y = mean,
-    ymax = mean + ci_high,
-    ymin = mean - ci_low,
-    col = variable
-  )) +
-  geom_pointrange() +
-  labs(
-    x = "", y = "Average response",
-    col = "Affect"
-  ) +
-  geom_hline(yintercept = 3.5, linetype = "dotted", col = "red", size = 1) +
-  scale_colour_brewer(palette = "Set1")
-ggsave(here("outputs", "affect.png"))
+  ggplot(aes(x = wave_fac, y = mean,
+               ymax = mean + ci_high, 
+               ymin = mean - ci_low,
+             col = variable)) +
+        geom_pointrange() +
+        labs(x = "", y = "Average response",
+            col = "Affect") +
+        geom_hline(yintercept = 3.5, linetype = 'dotted', col = 'red', size = 1) +
+        scale_colour_brewer(palette = "Set1")
+```
+
+## COVID experience 
+
+### Table C3 
+
+```{r}
+rona_hardship <- group_sum %>%
+    filter(wave_fac %in% c("May", "November")) %>% 
+    filter(str_detect(variable, "rona|fair|treat|job|income")) %>%
+    filter(!str_detect(variable, "apa|nochange|2020|biden|DEM|GOP|affect")) %>%
+    mutate(variable = recode(variable, 
+                             "lostjob" = "Unemployment",
+                             "incomereduc" = "Income reduction", 
+                             "rona.behav.sneeze" = "Avoid coughing/sneezing",
+                             "rona.behav.language" = 
+                             "Avoid speaking Asian language",
+                             "rona.behav.walk" = "Avoid walking in neighborhoods",
+                             "rona.behav.transit" = "Avoid public transporation",
+                             "rona.behav.other" = "Others",
+                             "ronaunfairasian" = "Experienced COVID discrimination due to race",
+                             "ronaunfair" = "Experienced COVID-19 discrimination",
+                             "knowrona" = "Know others mistreated during COVID pandemic"),
+                             ) %>%
+  mutate(mean = mean*100) %>%
+  flextable() %>%
+    set_table_properties(layout = "autofit", width = .8) %>%
+    save_as_docx(path = here("outputs", "table_c3.docx"))
 ```
 
 ```{r}
-group_sum %>%
-  filter(wave_fac == "May") %>%
-  filter(str_detect(variable, "rona")) %>%
-  filter(!str_detect(variable, "apa|nochange|2020|biden|DEM|GOP|fair|affect")) %>%
-  mutate(variable = recode(variable,
-    "rona.behav.sneeze" = "Avoid coughing/sneezing",
-    "rona.behav.language" =
-      "Avoid speaking Asian language",
-    "rona.behav.walk" = "Avoid walking in neighborhoods",
-    "rona.behav.transit" = "Avoid public transporation",
-    "rona.behav.other" = "Others",
-    "rona.index" = "Average response"
-  )) %>%
-  mutate(mean = mean * 100) %>%
-  ggplot(aes(
-    x = factor(variable), y = mean,
-    ymax = mean + ci_high,
-    ymin = mean - ci_low
-  )) +
-  geom_pointrange() +
-  ggrepel::geom_text_repel(aes(label = paste0(round(mean, 2), "%"))) +
-  labs(
-    title = "COVID-19 related marginalized experience (Wave 2)",
-    x = "", y = "Percentage"
-  ) +
-  coord_flip() +
-  scale_y_continuous(labels = ~ paste0(., "%"))
-ggsave(here("outputs", "rona_behave.png"), width = 10)
-```
-
-```{r}
-group_sum %>%
-  # filter(wave_fac == "May") %>%
-  filter(str_detect(variable, "ronaunfair")) %>%
-  mutate(variable = recode(variable,
-    "ronaunfairasian" = "Experienced COVID discrimination due to race",
-    "ronaunfair" = "Experienced COVID-19 discrimination"
-  )) %>%
-  mutate(mean = mean * 100) %>%
-  ggplot(aes(
-    x = wave_fac, y = mean,
-    ymax = mean + ci_high * 100,
-    ymin = mean - ci_low * 100
-  )) +
-  geom_pointrange() +
-  ggrepel::geom_text_repel(aes(label = paste0(round(mean, 2), "%"))) +
-  labs(
-    title = "COVID-19 related unfair treatment",
-    x = "", y = "Percentage"
-  ) +
-  facet_wrap(~variable) +
-  scale_y_continuous(labels = ~ paste0(., "%"))
-ggsave(here("outputs", "rona_fair.png"), width = 12)
-```
-
-```{r}
-# Lost job
+# Lost job 
 lost_job_pct <- sum(!is.na(df %>%
   filter(wave == 2) %>%
   pull(lostjob))) / (df %>% filter(wave == 2) %>% nrow()) %>%
@@ -393,29 +352,30 @@ income_reduction_pct <- sum(!is.na(df %>%
 round(income_reduction_pct, 4) * 100
 ```
 
+### Table C4 
+
 ```{r}
 df2 <- df2 %>%
-  mutate(
-    apa.discrim.rona = replace_na(apa.discrim.rona, 0),
-    lostjob = replace_na(lostjob, 0),
-    incomereduc = replace_na(incomereduc, 0),
-    ronaunfairasian = replace_na(ronaunfairasian, 0),
-    rona.apa.mistreat = replace_na(rona.apa.mistreat, 0)
-  )
+    mutate(apa.discrim.rona = replace_na(apa.discrim.rona, 0),
+           lostjob = replace_na(lostjob, 0),
+           incomereduc = replace_na(incomereduc, 0),
+           ronaunfairasian = replace_na(ronaunfairasian, 0),
+           rona.apa.mistreat = replace_na(rona.apa.mistreat, 0))
+```
 
-mod1 <- lm(apa.discrim.rona ~ lostjob + incomereduc, data = df2)
+```{r}
+mod1 <- lm(apa.discrim.rona ~ lostjob + incomereduc, data = df2) 
 mod2 <- lm(apa.discrim.rona ~ ronaunfairasian, data = df2)
 mod3 <- lm(apa.discrim.rona ~ rona.apa.mistreat, data = df2)
 
 set.seed(1234)
 modelsummary(list(`Hardship` = mod1, `Experience` = mod2, `Witnesing` = mod3),
-  fmt = 4,
-  coef_omit = "Intercept",
-  statistic = c("p = {p.value}"),
-  stars = TRUE,
-  vcov = "robust",
-  output = here("outputs", "reg_measure.docx")
-)
+             fmt = 4,
+             coef_omit = "Intercept",
+             statistic = c("p = {p.value}"),
+             #stars = TRUE,
+             vcov = "robust",
+             output = here("outputs", "table_c4.docx")) 
 ```
 
 ## Party ID
@@ -424,29 +384,18 @@ modelsummary(list(`Hardship` = mod1, `Experience` = mod2, `Witnesing` = mod3),
 dodge <- position_dodge(width = 0.9)
 
 group_sum %>%
-  filter(variable %in% c("DEM", "GOP")) %>%
-  ggplot(aes(
-    x = glue("{factor(wave_fac)} 2020"), y = mean,
-    ymax = mean + ci_high,
-    ymin = mean - ci_low
-  )) +
-  geom_errorbar() +
-  geom_col(alpha = 0.5) +
-  # ggrepel::geom_text_repel(aes(label = glue("{round(mean, 3)*100}%", position = dodge), width = 0.25, col = "red")) +
-  facet_wrap(~variable) +
-  labs(
-    title = "Changes in discrimination perception",
-    x = "", y = "Average response"
-  ) +
-  geom_hline(yintercept = 0, linetype = "dotted", col = "red", size = 1) +
-  theme(legend.position = "none")
-ggsave(here("outputs", "disc.perception.png"),
-  width = 10,
-  height = 7
-) +
-  ylim(c(-.5, .5))
-
-ggsave(here("outputs", "party_diff.png"))
+    filter(variable %in% c("DEM", "GOP")) %>%
+    ggplot(aes(x = glue("{factor(wave_fac)} 2020"), y = mean,
+               ymax = mean + ci_high, 
+               ymin = mean - ci_low)) +
+        geom_errorbar() +
+        geom_col(alpha = 0.5) +
+        #ggrepel::geom_text_repel(aes(label = glue("{round(mean, 3)*100}%", position = dodge), width = 0.25, col = "red")) +
+        facet_wrap(~variable) +
+        labs(title = "Changes in discrimination perception",
+            x = "", y = "Average response") +
+        geom_hline(yintercept = 0,  linetype = 'dotted', col = 'red', size = 1) +
+        theme(legend.position = "none")
 ```
 
 # Regression analysis
@@ -547,178 +496,137 @@ model.outs.middle <- cal_model_outputs(df %>% filter(prior == "Middle"))
 model.outs.high <- cal_model_outputs(df %>% filter(prior == "High"))
 ```
 
-### Table 1
+### Table 4 
 
 ```{r}
-models <- list(
-  
-  "OLS" = lm(likely_vote ~ apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df),
-  
-  "Weighted OLS" = lm(likely_vote ~ apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, weight = weights),
-  
-  "Within estimator" = plm(likely_vote ~ apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + nat_origin, data = df, index = c("pid", "wave"), model = "within"),
-  
-  "Interaction term" = lm(likely_vote ~ apa.discrim.rona + gendiscrim + prior + apa.discrim.rona:prior + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df)
-)
+cm <- c("apa.discrim.rona" = "COIVD Discrim",
+        "gendiscrim" = "General Discrim (Post COVID",
+        "usborn1" = "US Born",
+        "edu" = "Education",
+        "DEM1" = "Democratic Party",
+        "GOP1" = "Republican Party",
+        "age" = "Age",
+        "male1" = "Male",
+        "wave3" = "Wave3",
+        "proxy" = "Wave 1 General Discrim",
+        "apa.discrim.rona:proxy" = "COVID Discrim* Pre-COVID General Discrim",
+        "chinese1" = "Chinese",
+        "indian1" = "Indian")
 ```
 
 ```{r}
-modelsummary(models,
-  fmt = 3,
-  coef_omit = "Intercept|nat_origin",
-  statistic = c("p = {p.value}"),
-  output = here("outputs", "reg_tb1.docx"),
-  coef_rename =
-    c(
-      "gendiscrim" = "General discrim (post-COVID)",
-      "apa.discrim.rona" = "COVID-19 discrim",
-      "proxy" = "General Discrim (pre-COVID)",
-      "usborn1" = "US born",
-      "edu" = "Education",
-      "DEM1" = "Democratic Party",
-      "GOP1" = "Republican Party",
-      "age" = "Age",
-      "male1" = "Male",
-      "wave3" = "Wave 3",
-      "chinese1" = "Chinese",
-      "indian1" = "Indian"
-    ),
-  vcov = "robust"
-)
-```
-
-### Sensitivity analysis
-
-```{r}
-sense.out <- sensemakr(
-  model = lm(likely_vote ~ apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df),
-  treatment = "apa.discrim.rona",
-  benchmark_covariates = "usborn1",
-  kd = 1:3,
-  ky = 1:3,
-  q = 1
-)
-
-main.sense <- summary(sense.out) %>%
-  flextable() %>%
-  set_table_properties(layout = "autofit", width = .8)
-
-main.tmp <- tempfile(fileext = ".docx")
-
-# Create a docx file
-read_docx() %>%
-  body_add_flextable(main.sense) %>%
-  print(target = main.tmp)
-
-browseURL(main.tmp)
-```
-
-## Biden candidacy
-
-### Table 2
-
-```{r}
-biden.models <- list(
-  "Logit" = glm(biden ~ apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, family = binomial),
-  "Weighted logit" = glm(biden ~ apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, family = binomial, weight = weights),
-  "Within estimator" = plm(biden ~ apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, index = c("pid", "wave"), model = "within", family = binomial),
-  "Interaction term" = glm(biden ~ apa.discrim.rona + gendiscrim + proxy + apa.discrim.rona:proxy + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, weight = weights, family = binomial)
-)
+turnout_mod <- list(
+  
+    "OLS" = lm(likely_vote ~ gendiscrim + apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df),
+    
+    "Weighted" = lm(likely_vote ~ gendiscrim + apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, weight = weights),
+    
+    "Within" = plm(likely_vote ~ gendiscrim + apa.discrim.rona + DEM + GOP + age + nat_origin, data = df, index = c("pid", "wave"), model = "within"),
+    
+    "Interaction term" = lm(likely_vote ~ apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + proxy + apa.discrim.rona:proxy + nat_origin, data = df)
+    
+    )
 ```
 
 ```{r}
-modelsummary(biden.models,
-  fmt = 3,
-  coef_omit = "Intercept|nat_origin",
-  statistic = c("p = {p.value}"),
-  output = here("outputs", "reg_tb2.docx"),
-  coef_rename =
-    c(
-      "gendiscrim" = "General discrim (post-COVID)",
-      "apa.discrim.rona" = "COVID-19 discrim",
-      "proxy" = "General Discrim (pre-COVID)",
-      "usborn1" = "US born",
-      "edu" = "Education",
-      "DEM1" = "Democratic Party",
-      "GOP1" = "Republican Party",
-      "age" = "Age",
-      "male1" = "Male",
-      "wave3" = "Wave 3",
-      "chinese1" = "Chinese",
-      "indian1" = "Indian"
-    ),
-  vcov = "robust"
-)
+modelsummary(turnout_mod,
+             fmt = 3,
+             coef_map = cm,
+             coef_omit = "Intercept|nat_origin",
+             statistic = c("p = {p.value}"),
+             output = here("outputs", "table4.docx"))
+```
+
+### Table C5 
+
+```{r}
+sense.out <- sensemakr(model = lm(likely_vote ~ gendiscrim + apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df),
+          treatment = "apa.discrim.rona", 
+          benchmark_covariates = "usborn1",
+          kd = 1:3, 
+          ky = 1:3, 
+          q = 1)
+
+summary(sense.out) %>%
+    flextable() %>%
+    set_table_properties(layout = "autofit", width = .8) %>%
+    save_as_docx(path = here("outputs", "table_c5.docx"))
+```
+
+## Candidate preference
+
+### Table 5 
+
+```{r}
+biden_mod <- list(
+    
+    "Logit" = glm(biden ~ gendiscrim + apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, family = binomial),
+    
+    "Weighted" = glm(biden ~ gendiscrim + apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, family = binomial, weight = weights),
+    
+    "Within" = plm(biden ~ gendiscrim + apa.discrim.rona + DEM + GOP + age + nat_origin + wave, data = df, index = c("pid", "wave"), model = "within", family = binomial),    
+    
+    "Interaction" = glm(biden ~  apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + proxy + apa.discrim.rona:proxy + nat_origin, data = df, family = binomial)
+
+  )
+```
+
+```{r}
+modelsummary(biden_mod,
+             fmt = 3,
+             coef_map = cm,
+             coef_omit = "Intercept|nat_origin",
+             statistic = c("p = {p.value}"),
+             output = here("outputs", "table5.docx"))
 ```
 ### Sensitivity analysis
 
+### Table C6
+
 ```{r}
-sense.out.biden <- sensemakr(
-  model = lm(biden ~ apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df),
-  treatment = "apa.discrim.rona",
-  benchmark_covariates = "DEM1",
-  kd = 1:3,
-  ky = 1:3,
-  q = 1
-)
+sense.out.biden <- sensemakr(model = lm(biden ~ gendiscrim + apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df),
+          treatment = "apa.discrim.rona", 
+          benchmark_covariates = "DEM1",
+          kd = 1:3, 
+          ky = 1:3, 
+          q = 1)
 
-biden.sense <- summary(sense.out.biden) %>%
-  flextable() %>%
-  set_table_properties(layout = "autofit", width = .8)
-
-biden.tmp <- tempfile(fileext = ".docx")
-
-# Create a docx file
-read_docx() %>%
-  body_add_flextable(biden.sense) %>%
-  print(target = biden.tmp)
-
-browseURL(biden.tmp)
+summary(sense.out.biden) %>%
+    flextable() %>%
+    set_table_properties(layout = "autofit", width = .8) %>%
+    save_as_docx(path = here("outputs", "table_c6.docx"))
 ```
 
 
+### Table 6
+
 ```{r}
-sense_series <- c(
-  model %>%
-    tidy() %>%
-    filter(term == "apa.discrim.rona") %>%
-    select(estimate) %>%
-    pull(estimate),
-  run_sense(model) %>%
-    tibble() %>%
-    select(contains("Adjusted Estimate")) %>%
-    pull(`Adjusted Estimate`)
-)
+sub.models <- list(
 
-bench <- model %>%
-  tidy() %>%
-  filter(term == "DEM") %>%
-  select(estimate) %>%
-  pull(estimate)
-
-1 - (sense_series[1] - sense_series[4]) / sense_series[1]
-bench
-1 - (sense_series[1] - sense_series[4]) / sense_series[1] > bench
-
-run_sense(model) %>%
-  tibble() %>%
-  gt()
+    "High Discrimination Pre-COVID" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "High"), family = binomial, weight = weights),
+            
+    "Middle Discrimination Pre-COVID" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "Middle"), family = binomial, weight = weights),
+            
+    "Low Discrimination Pre-COVID" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "Low"), family = binomial, weight = weights)
+    )
 ```
 
-## Interaction terms 
+```{r}
+modelsummary(sub.models,
+             exponentiate = TRUE,
+             fmt = 3,
+             coef_map = cm,
+             coef_omit = "Intercept",
+             statistic = c("p = {p.value}"),
+             #stars = TRUE,
+             output = here("outputs", "table6.docx"),
+             vcov = "robust")
+```
+
+### Figure B4 
 
 ```{r}
-turnout_int_mod <- list(
-  "Interaction term (Turnout)" = lm(likely_vote ~ gendiscrim + apa.discrim.rona + proxy + apa.discrim.rona:proxy + usborn + edu + DEM + GOP + age + male + wave, data = df, weight = weights),
-  "Interaction term with national origin dummies (Turnout)" = lm(likely_vote ~ gendiscrim + apa.discrim.rona + proxy + apa.discrim.rona:proxy + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, weight = weights)
-)
-
-biden_int_mod <- list(
-  "Interaction term (Biden candidacy)" = glm(biden ~ gendiscrim + apa.discrim.rona + proxy + apa.discrim.rona:proxy + usborn + edu + DEM + GOP + age + male + wave, data = df, family = binomial, weight = weights),
-  "Interaction term with national origin dummies (Biden candidacy)" = glm(biden ~ gendiscrim + apa.discrim.rona + proxy + apa.discrim.rona:proxy + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, family = binomial, weight = weights)
-)
-
-fit <- glm(biden ~ gendiscrim + apa.discrim.rona + proxy + apa.discrim.rona:proxy + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, family = binomial, weight = weights)
+fit <- glm(biden ~ gendiscrim  + apa.discrim.rona + proxy + apa.discrim.rona:proxy + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, family = binomial, weight = weights)
 ```
 
 ```{r}
@@ -735,67 +643,48 @@ plot_model(fit,
   ) +
   theme(legend.position = "bottom")
 
-ggsave(here("outputs", "pred_biden.png"), width = 7, height = 7)
+ggsave(here("outputs", "figure_b4.png"), width = 7, height = 7)
 ```
 
-```{r}
-modelsummary(turnout_int_mod,
-  exponentiate = TRUE,
-  fmt = 3,
-  coef_omit = "Intercept|nat_origin",
-  statistic = c("p = {p.value}"),
-  output = here("outputs", "turnout_int_mod.docx")
-)
+## Correlations
 
-modelsummary(biden_int_mod,
-  fmt = 3,
-  coef_omit = "Intercept|nat_origin",
-  statistic = c("p = {p.value}"),
-  output = here("outputs", "biden_int_mod.docx")
-)
-```
-
-## Correlates
-
-```{r}
-modelplot(lm(gendiscrim ~ usborn + edu + income + DEM + GOP + age + male, data = subset(df, wave == 1)),
-  coef_omit = "Intercept",
-  vcov = "robust",
-  coef_rename =
-    c(
-      "usborn1" = "US born",
-      "edu" = "Education",
-      "income" = "Income",
-      "DEM1" = "Democratic Party",
-      "GOP1" = "Republican Party",
-      "age" = "Age",
-      "male1" = "Male"
-    )
-) +
-  geom_vline(xintercept = 0, col = "red", linetype = "dashed") +
-  theme_classic()
-
-ggsave(here("outputs", "correlate_gen.png"))
-```
+### Figure B1 
 
 ```{r}
 modelplot(lm(apa.discrim.rona ~ usborn + edu + DEM + GOP + age + male + wave_fac, data = subset(df, wave != 1)),
-  coef_omit = "Intercept",
-  vcov = "robust",
-  coef_rename =
-    c(
-      "usborn1" = "US born",
-      "edu" = "Education",
-      # "income" = "Income",
-      "DEM1" = "Democratic Party",
-      "GOP1" = "Republican Party",
-      "age" = "Age",
-      "male1" = "Male",
-      "wave_facNovember" = "Wave 3"
-    )
-) +
-  geom_vline(xintercept = 0, col = "red", linetype = "dashed") +
-  theme_classic()
+          coef_omit = "Intercept",
+          vcov = "robust",
+          coef_rename = 
+                 c("usborn1" = "US born",
+                   "edu" = "Education",
+                   #"income" = "Income",
+                   "DEM1" = "Democratic Party",
+                   "GOP1" = "Republican Party",
+                   "age" = "Age",
+                   "male1" = "Male",
+                   "wave_facNovember" = "Wave 3")) +
+    geom_vline(xintercept = 0, col = "red", linetype = "dashed") +
+    theme_classic()
 
-ggsave(here("outputs", "correlate_covid.png"))
+ggsave(here("outputs", "figure_b1.png"))
+```
+
+### Figure B3 
+
+```{r}
+modelplot(lm(gendiscrim ~ usborn + edu + income + DEM + GOP + age + male, data = subset(df, wave == 1)),
+          coef_omit = "Intercept",
+          vcov = "robust",
+          coef_rename = 
+                 c("usborn1" = "US born",
+                   "edu" = "Education",
+                   "income" = "Income",
+                   "DEM1" = "Democratic Party",
+                   "GOP1" = "Republican Party",
+                   "age" = "Age",
+                   "male1" = "Male")) +
+    geom_vline(xintercept = 0, col = "red", linetype = "dashed") +
+    theme_classic()
+
+ggsave(here("outputs", "figure_b3.png"))
 ```
