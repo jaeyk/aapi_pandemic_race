@@ -481,5 +481,5 @@ df$weights <- weights(df_raked)
 # Export data 
 
 ```{r}
-write.csv(df, here("processed_data", "panel_data_recoded.csv"))
+write.csv(df, here("processed_data", "panel_data_cleaned.csv"))
 ```
