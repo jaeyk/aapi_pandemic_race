@@ -60,34 +60,40 @@ df <- read_csv(here("processed_data", "panel_data_cleaned.csv"))[,-c(1:2)]
 df2 <- subset(df, wave == 2)
 ```
 
-# Regression analysis
-
 ## Likely to vote 
 
 ```{r}
 # rename the DV
 df$likely_vote <- df$`2020likelyvote`
-```
-
-```{r}
-# create a proxy variable
-df$proxy <- rep(subset(df, wave == 1)$gendiscrim, 3)
-
-df$proxy %>% table()
-```
-
-```{r}
-df$prior[df$proxy == 0.5] <- "Middle"
-df$prior[df$proxy < 0.5] <- "Low"
-df$prior[df$proxy > 0.5] <- "High"
 
 # rescale the discrimination perception variables
 df$apa.discrim.rona <- df$apa.discrim.rona + .5
 df$gendiscrim <- df$gendiscrim + .5
 
-# create factor variables 
+# create a proxy variable
+df$proxy <- rep(subset(df, wave == 1)$gendiscrim, 3)
 
-## covariates 
+## check the proxy data distribution
+df$proxy %>% table()
+
+df$prior[df$proxy == 0.5] <- "Middle"
+df$prior[df$proxy < 0.5] <- "Low"
+df$prior[df$proxy > 0.5] <- "High"
+
+min(df$proxy)
+max(df$proxy)
+```
+
+Group definition 
+
+    - Middle = 0.5  
+    - 1 >= High > 0.5 
+    - 0 <= Low < 0.5 
+
+```{r}
+# create factor variables
+
+## covariates
 df$usborn <- factor(df$usborn)
 df$male <- factor(df$male)
 df$chinese <- factor(df$chinese)
@@ -95,225 +101,124 @@ df$indian <- factor(df$indian)
 df$GOP <- factor(df$GOP)
 df$DEM <- factor(df$DEM)
 df$wave <- factor(df$wave)
+df$nat_origin <- factor(df$natorigin)
 ```
 
-```{r}
-model.outs <- cal_model_outputs(df)
-model.outs.low <- cal_model_outputs(df %>% filter(prior == "Low"))
-model.outs.middle <- cal_model_outputs(df %>% filter(prior == "Middle"))
-model.outs.high <- cal_model_outputs(df %>% filter(prior == "High"))
-```
-
-### Main 
+### Table 1
 
 ```{r}
 models <- list(
-
-    "OLS" = lm(likely_vote ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = df),
-    
-    "Weighted" = lm(likely_vote ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = df, weight = weights),
-    
-    "Within" = plm(likely_vote ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + chinese + indian, data = df, index = c("pid", "wave"), model = "within")
-
-    )
-```
-
-```{r}
-modelsummary(models,
-             fmt = 3,
-             coef_omit = "Intercept",
-             statistic = c("p = {p.value}"),
-             stars = TRUE, 
-             output = here("outputs", "reg_tb1_none.docx"),
-             coef_rename = 
-                c( "gendiscrim" = "General discrimination",
-                   "apa.discrim.rona" = "COVID-19 discrimination",
-                   "usborn1" = "US born",
-                   "edu" = "Education",
-                   "DEM1" = "Democratic Party",
-                   "GOP1" = "Republican Party",
-                   "age" = "Age",
-                   "male1" = "Male",
-                   "wave3" = "Wave 3",
-                   "chinese1" = "Chinese",
-                   "indian1" = "Indian"),
-             vcov = "robust")
-```
-
-```{r}
-sense.out <- sensemakr(model = lm(likely_vote ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = df),
-          treatment = "apa.discrim.rona", 
-          benchmark_covariates = "usborn1",
-          kd = 1:3, 
-          ky = 1:3, 
-          q = 1)
-
-summary(sense.out)
-```
-
-### Sub
-
-```{r}
-sub.models <- list(
-
-    "High Discrimination Pre-COVID" = lm(likely_vote ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "High"), weight = weights),
-            
-    "Middle Discrimination Pre-COVID" = lm(likely_vote ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "Middle"), weight = weights),
-            
-    "Low Discrimination Pre-COVID" = lm(likely_vote ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "Low"), weight = weights)
-    )
-
-modelsummary(sub.models,
-             fmt = 3,
-             coef_omit = "Intercept",
-             statistic = c("p = {p.value}"),
-             stars = TRUE, 
-             output = here("outputs", "reg_tb_sub1_none.docx"),
-             coef_rename = 
-                c( "gendiscrim" = "General discrimination",
-                   "apa.discrim.rona" = "COVID-19 discrimination",
-                   "usborn1" = "US born",
-                   "edu" = "Education",
-                   "DEM1" = "Democratic Party",
-                   "GOP1" = "Republican Party",
-                   "age" = "Age",
-                   "male1" = "Male",
-                   "wave3" = "Wave 3",
-                   "chinese1" = "Chinese",
-                   "indian1" = "Indian"),
-             vcov = "robust")
-```
-
-## Biden candidacy
-
-### Main 
-
-```{r}
-biden.models <- list(
-
-    "Logit" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = df, family = binomial),
-    
-    "Weighted" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = df, family = binomial, weight = weights),
-    
-    "Within" = plm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + chinese + indian, data = df, index = c("pid", "wave"), model = "within", family = binomial)    
-    
-    )
-```
-
-```{r}
-modelsummary(biden.models,
-             exponentiate = TRUE,
-             fmt = 3,
-             coef_omit = "Intercept",
-             statistic = c("p = {p.value}"),
-             stars = TRUE, 
-             output = here("outputs", "reg_tb2_none.docx"),
-             coef_rename = 
-                c( "gendiscrim" = "General discrimination",
-                   "apa.discrim.rona" = "COVID-19 discrimination",
-                   "usborn1" = "US born",
-                   "edu" = "Education",
-                   "DEM1" = "Democratic Party",
-                   "GOP1" = "Republican Party",
-                   "age" = "Age",
-                   "male1" = "Male",
-                   "wave3" = "Wave 3",
-                   "chinese1" = "Chinese",
-                   "indian1" = "Indian"),
-             vcov = "robust")
-```
-
-```{r}
-sense.out.biden <- sensemakr(model = lm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = df),
-          treatment = "apa.discrim.rona", 
-          benchmark_covariates = "usborn1",
-          kd = 1:3, 
-          ky = 1:3, 
-          q = 1)
-
-summary(sense.out.biden)
-```
-
-```{r}
-test.out <- lm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = df)
-
-modelsummary(test.out, 
-             fmt = 3,
-             coef_omit = "Intercept",
-             statistic = c("p = {p.value}"),
-             stars = TRUE)
-```
-
-### Sub
-
-```{r}
-sub.models <- list(
-
-    "High Discrimination Pre-COVID" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "High"), family = binomial),
-            
-    "Middle Discrimination Pre-COVID" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "Middle"), family = binomial),
-            
-    "Low Discrimination Pre-COVID" = glm(biden ~ gendiscrim + apa.discrim.rona + usborn + edu + DEM + GOP + age + male + wave + chinese + indian, data = subset(df, prior == "Low"), family = binomial)
-
+  "OLS" = lm(likely_vote ~ apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df),
+  "Weighted OLS" = lm(likely_vote ~ apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, weight = weights),
+  "Within estimator" = plm(likely_vote ~ apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + nat_origin, data = df, index = c("pid", "wave"), model = "within"),
+  "Interaction term" = lm(likely_vote ~ apa.discrim.rona + gendiscrim + proxy + apa.discrim.rona:proxy + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df)
 )
 ```
 
 ```{r}
-modelsummary(sub.models,
-             exponentiate = TRUE,
-             fmt = 3,
-             coef_omit = "Intercept",
-             statistic = c("p = {p.value}"),
-             stars = TRUE, 
-             output = here("outputs", "reg_tb_sub2_none.docx"),
-             coef_rename = 
-                 c("gendiscrim" = "General discrimination",
-                   "apa.discrim.rona" = "COVID-19 discrimination",
-                   "usborn1" = "US born",
-                   "edu" = "Education",
-                   "DEM1" = "Democratic Party",
-                   "GOP1" = "Republican Party",
-                   "age" = "Age",
-                   "male1" = "Male",
-                   "wave3" = "Wave 3",
-                   "chinese1" = "Chinese",
-                   "indian1" = "Indian"),
-             vcov = "robust")
+modelsummary(models,
+  fmt = 3,
+  coef_omit = "Intercept|nat_origin",
+  statistic = c("p = {p.value}"),
+  output = here("outputs", "reg_tb1_none.docx"),
+  coef_rename =
+    c(
+      "gendiscrim" = "General discrim (post-COVID)",
+      "apa.discrim.rona" = "COVID-19 discrim",
+      "proxy" = "General Discrim (pre-COVID)",
+      "usborn1" = "US born",
+      "edu" = "Education",
+      "DEM1" = "Democratic Party",
+      "GOP1" = "Republican Party",
+      "age" = "Age",
+      "male1" = "Male",
+      "wave3" = "Wave 3",
+      "chinese1" = "Chinese",
+      "indian1" = "Indian"
+    ),
+  vcov = "robust"
+)
+```
+
+## Biden candidacy
+
+### Table 2
+
+```{r}
+biden.models <- list(
+  "Logit" = glm(biden ~ apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, family = binomial),
+  "Weighted logit" = glm(biden ~ apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, family = binomial, weight = weights),
+  "Within estimator" = plm(biden ~ apa.discrim.rona + gendiscrim + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, index = c("pid", "wave"), model = "within", family = binomial),
+  "Interaction term" = glm(biden ~ apa.discrim.rona + gendiscrim + proxy + apa.discrim.rona:proxy + usborn + edu + DEM + GOP + age + male + wave + nat_origin, data = df, weight = weights, family = binomial)
+)
+```
+
+```{r}
+modelsummary(biden.models,
+  fmt = 3,
+  coef_omit = "Intercept|nat_origin",
+  statistic = c("p = {p.value}"),
+  output = here("outputs", "reg_tb2_none.docx"),
+  coef_rename =
+    c(
+      "gendiscrim" = "General discrim (post-COVID)",
+      "apa.discrim.rona" = "COVID-19 discrim",
+      "proxy" = "General Discrim (pre-COVID)",
+      "usborn1" = "US born",
+      "edu" = "Education",
+      "DEM1" = "Democratic Party",
+      "GOP1" = "Republican Party",
+      "age" = "Age",
+      "male1" = "Male",
+      "wave3" = "Wave 3",
+      "chinese1" = "Chinese",
+      "indian1" = "Indian"
+    ),
+  vcov = "robust"
+)
 ```
 
 ## Correlates
 
 ```{r}
 modelplot(lm(gendiscrim ~ usborn + edu + income + DEM + GOP + age + male, data = subset(df, wave == 1)),
-          coef_omit = "Intercept",
-          vcov = "robust",
-          coef_rename = 
-                 c("usborn1" = "US born",
-                   "edu" = "Education",
-                   "income" = "Income",
-                   "DEM1" = "Democratic Party",
-                   "GOP1" = "Republican Party",
-                   "age" = "Age",
-                   "male1" = "Male")) +
-    geom_vline(xintercept = 0, col = "red", linetype = "dashed")
+  coef_omit = "Intercept",
+  vcov = "robust",
+  coef_rename =
+    c(
+      "usborn1" = "US born",
+      "edu" = "Education",
+      "income" = "Income",
+      "DEM1" = "Democratic Party",
+      "GOP1" = "Republican Party",
+      "age" = "Age",
+      "male1" = "Male"
+    )
+) +
+  geom_vline(xintercept = 0, col = "red", linetype = "dashed") +
+  theme_classic()
 
-ggsave(here("outputs", "correlate_gen_none.png"))
+ggsave(here("outputs", "correlate_gen.png"))
 ```
 
 ```{r}
 modelplot(lm(apa.discrim.rona ~ usborn + edu + DEM + GOP + age + male + wave_fac, data = subset(df, wave != 1)),
-          coef_omit = "Intercept",
-          vcov = "robust",
-          coef_rename = 
-                 c("usborn" = "US born",
-                   "edu" = "Education",
-                   "income" = "Income",
-                   "DEM" = "Democratic Party",
-                   "GOP" = "Republican Party",
-                   "age" = "Age",
-                   "male" = "Male",
-                   "wave_facNovember" = "Wave 3")) +
-    geom_vline(xintercept = 0, col = "red", linetype = "dashed")
+  coef_omit = "Intercept",
+  vcov = "robust",
+  coef_rename =
+    c(
+      "usborn1" = "US born",
+      "edu" = "Education",
+      # "income" = "Income",
+      "DEM1" = "Democratic Party",
+      "GOP1" = "Republican Party",
+      "age" = "Age",
+      "male1" = "Male",
+      "wave_facNovember" = "Wave 3"
+    )
+) +
+  geom_vline(xintercept = 0, col = "red", linetype = "dashed") +
+  theme_classic()
 
-ggsave(here("outputs", "correlate_covid_none.png"))
+ggsave(here("outputs", "correlate_covid.png"))
 ```

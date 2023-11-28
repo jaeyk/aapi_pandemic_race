@@ -64,8 +64,7 @@ df$prior[df$proxy > 0.5] <- "High"
 
 # factorize
 
-df <- df %>% 
-  mutate(prior = fct_relevel(prior, levels = c("Low", "Middle", "High")))
+df$prior <- factor(df$prior, levels = c("Low", "Middle", "High"))
 
 ## covariates
 df$wave <- factor(df$wave)
@@ -109,6 +108,7 @@ cor_plot <- df %>%
 ```
 
 ```{r}
+# Figure 2
 cor_plot
 
 ggsave(here("outputs", "fig1_desc.png"))
@@ -143,8 +143,20 @@ datasummary_balance(
 ```
 
 ```{r}
-datasummary_balance(
-  ~prior,
+datasummary(
+  income + 
+  edu + 
+  usborn + 
+  male +
+  DEM + 
+  GOP + 
+  chinese + 
+  indian + 
+  filipino + 
+  vietnamese +
+  korean +
+  japanese ~ 
+  prior,
   data = df %>%
     filter(wave == 1) %>%
     select(income, edu, usborn, male,
