@@ -1,7 +1,5 @@
 # Replication code for Race in a Pandemic: Asian American Perceptions of Discrimination and Political Mobilization in the 2020 Election 
 
-* Author: Vivien Leung, Jae Yeon Kim, Natalie Masuoka
-
 ## Session information 
 
 * R version 4.2.2 Patched (2022-11-10 r83330)
